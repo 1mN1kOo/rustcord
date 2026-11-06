@@ -28,8 +28,9 @@ fn main() {
 
                 let menu = Menu::with_items(app, &[&show_i, &reload_i, &quit_i])?;
 
-                // Build System Tray Icon
+                // Set window and taskbar icon explicitly
                 if let Some(icon) = app.default_window_icon() {
+                    let _ = window.set_icon(icon.clone());
                     let _tray = TrayIconBuilder::new()
                         .icon(icon.clone())
                         .tooltip("Rustcord")
