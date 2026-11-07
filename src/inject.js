@@ -256,231 +256,290 @@
         Notification.requestPermission = () => Promise.resolve('granted');
     } catch(_) {}
 
-    // 2. Official Discord Desktop Emulation Bridge: DiscordNative & DesktopCapture
-    (function() {
-        // Raw WebRTC APIs
-        const origGetDisplayMedia = navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia 
-            ? navigator.mediaDevices.getDisplayMedia.bind(navigator.mediaDevices) 
-            : null;
-        const origGetUserMedia = navigator.mediaDevices && navigator.mediaDevices.getUserMedia 
-            ? navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices) 
-            : null;
+    // 2. Authentic Discord In-App Screen Sharing Modal
+    try {
+        if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+            const origGetDisplayMedia = navigator.mediaDevices.getDisplayMedia.bind(navigator.mediaDevices);
 
-        // Emulate window.DiscordNative
-        const DiscordNative = window.DiscordNative || {};
-        DiscordNative.isRenderer = true;
+            function showDiscordScreenShareModal() {
+                return new Promise((resolve, reject) => {
+                    const existing = document.getElementById("rustcord-screenshare-overlay");
+                    if (existing) existing.remove();
 
-        // 2.1 desktopCapture Bridge
-        DiscordNative.desktopCapture = {
-            getDesktopCaptureSources: async function(options) {
-                options = options || {};
-                const requestedTypes = Array.isArray(options.types) 
-                    ? options.types.map(t => String(t).toLowerCase()) 
-                    : ["screen", "window"];
+                    const overlay = document.createElement("div");
+                    overlay.id = "rustcord-screenshare-overlay";
+                    overlay.innerHTML = `
+                        <div class="rc-sc-modal dlg rc-modal-dialog">
+                            <!-- Header -->
+                            <div class="rc-sc-header">
+                                <div>
+                                    <h2 class="rc-sc-title">Демонстрация экрана</h2>
+                                    <div class="rc-sc-subtitle">Выберите приложение или экран</div>
+                                </div>
+                                <button class="rc-sc-close-btn rc-dlg-close" id="rc-sc-close" aria-label="Закрыть">
+                                    <svg width="24" height="24" viewBox="0 0 24 24">
+                                        <path fill="currentColor" d="M18.4 4L12 10.4L5.6 4L4 5.6L10.4 12L4 18.4L5.6 20L12 13.6L18.4 20L20 18.4L13.6 12L20 5.6L18.4 4Z"/>
+                                    </svg>
+                                </button>
+                            </div>
 
-                // Read sources populated by windows_capture.rs via main.rs
-                let sources = Array.isArray(window.__RUSTCORD_SOURCES__) ? window.__RUSTCORD_SOURCES__ : [];
+                            <!-- Pill Tab Bar -->
+                            <div class="rc-sc-tabs tabs" role="tablist">
+                                <button class="rc-sc-tab tab active on" data-tab="apps" data-t="apps" role="tab" aria-selected="true">Приложения</button>
+                                <button class="rc-sc-tab tab" data-tab="screens" data-t="screens" role="tab" aria-selected="false">Экраны</button>
+                            </div>
 
-                // Fall back gracefully if sources are empty during initial startup
-                if (!sources || sources.length === 0) {
-                    for (let i = 0; i < 6; i++) {
-                        await new Promise(r => setTimeout(r, 150));
-                        sources = Array.isArray(window.__RUSTCORD_SOURCES__) ? window.__RUSTCORD_SOURCES__ : [];
-                        if (sources && sources.length > 0) break;
-                    }
-                }
+                            <!-- 2-Column Source Grid -->
+                            <div class="rc-sc-grid grid" id="rc-sc-grid"></div>
 
-                // If still empty, supply primary screen fallback
-                if (!sources || sources.length === 0) {
-                    sources = [{
-                        id: "screen:0:0",
-                        name: "Весь экран",
-                        url: "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22300%22%20height%3D%22180%22%20viewBox%3D%220%200%20300%20180%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%235865F2%22%2F%3E%3Ctext%20x%3D%22150%22%20y%3D%2295%22%20font-size%3D%2216%22%20font-weight%3D%22bold%22%20fill%3D%22%23FFFFFF%22%20text-anchor%3D%22middle%22%3E%D0%92%D0%B5%D1%81%D1%8C%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%3C%2Ftext%3E%3C%2Fsvg%3E",
-                        icon: null
-                    }];
-                }
+                            <!-- Stream Quality Section -->
+                            <div class="rc-sc-quality-section">
+                                <div class="rc-sc-section-label">КАЧЕСТВО СТРИМА</div>
+                                <div class="rc-sc-quality-controls">
+                                    <!-- Resolution Segmented Control -->
+                                    <div class="rc-sc-segment-group" id="rc-sc-res-group">
+                                        <button class="rc-sc-segment-btn" data-val="720p">720p</button>
+                                        <button class="rc-sc-segment-btn active" data-val="1080p">1080p</button>
+                                    </div>
+                                    <!-- FPS Segmented Control -->
+                                    <div class="rc-sc-segment-group" id="rc-sc-fps-group">
+                                        <button class="rc-sc-segment-btn" data-val="30">30 FPS</button>
+                                        <button class="rc-sc-segment-btn active" data-val="60">60 FPS</button>
+                                    </div>
+                                </div>
+                            </div>
 
-                // Filter sources based on requested types
-                const filtered = sources.filter(s => {
-                    if (!s || !s.id) return false;
-                    const id = typeof s.id === 'string' ? s.id : String(s.id || '');
-                    if (id.startsWith("screen:") && requestedTypes.includes("screen")) return true;
-                    if (id.startsWith("window:") && requestedTypes.includes("window")) return true;
-                    return false;
-                });
+                            <!-- Action Buttons Footer -->
+                            <div class="rc-sc-footer foot">
+                                <button class="rc-sc-btn-cancel rc-cancel-flat" id="rc-sc-cancel">Отмена</button>
+                                <button class="rc-sc-btn-submit go" id="rc-sc-submit">Прямой эфир</button>
+                            </div>
+                        </div>
+                    `;
 
-                if (filtered.length === 0 && requestedTypes.includes("screen")) {
-                    filtered.push({
-                        id: "screen:0:0",
-                        name: "Весь экран",
-                        url: "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22300%22%20height%3D%22180%22%20viewBox%3D%220%200%20300%20180%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%235865F2%22%2F%3E%3Ctext%20x%3D%22150%22%20y%3D%2295%22%20font-size%3D%2216%22%20font-weight%3D%22bold%22%20fill%3D%22%23FFFFFF%22%20text-anchor%3D%22middle%22%3E%D0%92%D0%B5%D1%81%D1%8C%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%3C%2Ftext%3E%3C%2Fsvg%3E",
-                        icon: null
-                    });
-                }
+                    document.body.appendChild(overlay);
 
-                return filtered.map(source => ({
-                    id: typeof source.id === 'string' ? source.id : String(source.id || ''),
-                    name: source.name || "Unknown Window",
-                    url: source.url || "",
-                    icon: source.icon || undefined
-                }));
-            }
-        };
+                    const allInitial = window.__RUSTCORD_SOURCES__ || [];
+                    const hasWin = allInitial.some(s => s.id && s.id.startsWith("window:"));
+                    const hasScr = allInitial.some(s => s.id && s.id.startsWith("screen:"));
+                    let currentTab = (!hasWin && hasScr) ? "screens" : "apps";
 
-        // 2.2 app properties
-        DiscordNative.app = {
-            getVersion: () => "1.0.9267",
-            getReleaseChannel: () => "stable",
-            getBuildNumber: () => 9267,
-            getDefaultDoubleClickAction: async () => "Maximize",
-            relaunch: () => window.location.reload(),
-            setBadge: () => {},
-            dock: {
-                setBadge: () => {},
-                bounce: () => {}
-            }
-        };
-
-        // 2.3 process environment
-        DiscordNative.process = {
-            platform: "win32",
-            arch: "x64",
-            env: {}
-        };
-
-        // 2.4 os environment
-        DiscordNative.os = {
-            release: "10.0.19045",
-            arch: "x64",
-            appArch: "x64",
-            systemVersion: "10.0.19045"
-        };
-
-        // 2.5 features
-        DiscordNative.features = {
-            supports: () => false,
-            declareSupported: () => {}
-        };
-
-        // 2.6 settings stub
-        DiscordNative.settings = {
-            get: async (key, defaultValue) => defaultValue,
-            set: async (key, value) => value
-        };
-
-        // 2.7 gpuSettings stub
-        DiscordNative.gpuSettings = {
-            setChromiumSwitches: async () => {},
-            getEnableHardwareAcceleration: () => true
-        };
-
-        // 2.8 window management stub
-        DiscordNative.window = {
-            getMediaSourceId: async () => null,
-            flashFrame: () => {},
-            setProgressBar: () => {},
-            minimize: () => {},
-            maximize: () => {},
-            restore: () => {},
-            close: () => {},
-            focus: () => {}
-        };
-
-        // 2.9 IPC stub
-        DiscordNative.ipc = {
-            send: () => {},
-            on: () => {},
-            invoke: async () => null
-        };
-
-        // 2.10 powerSaveBlocker stub
-        DiscordNative.powerSaveBlocker = {
-            blockDisplaySleep: () => 1,
-            unblockDisplaySleep: () => {},
-            cleanupDisplaySleep: () => {}
-        };
-
-        // 2.11 processUtils stub
-        DiscordNative.processUtils = {
-            getSystemInfo: async () => ({ electronGPUInfo: { gpuDevice: [] } }),
-            setCrashInformation: () => {}
-        };
-
-        // 2.12 nativeModules stub
-        DiscordNative.nativeModules = {
-            ensureModule: async () => false,
-            requireModule: (mod) => {
-                if (mod === "discord_utils") {
-                    return {
-                        isSystemDarkMode: () => true,
-                        getDiscordIsElevated: () => false,
-                        shouldDisplayNotifications: () => false
-                    };
-                }
-                return null;
-            },
-            hasUpdater: false,
-            canLoadNativeModules: false
-        };
-
-        // 2.13 clipboard stub
-        DiscordNative.clipboard = {
-            copy: (text) => { navigator.clipboard?.writeText(text).catch(() => {}); },
-            read: () => navigator.clipboard?.readText() || Promise.resolve("")
-        };
-
-        // Expose DiscordNative to window
-        window.DiscordNative = DiscordNative;
-
-        // 2.14 WebRTC Media Capture Interceptors
-        if (navigator.mediaDevices) {
-            // Hook getUserMedia for chromeMediaSource: 'desktop'
-            if (origGetUserMedia) {
-                navigator.mediaDevices.getUserMedia = function(constraints) {
-                    const isDesktopCapture = constraints && constraints.video && (
-                        (constraints.video.mandatory && constraints.video.mandatory.chromeMediaSource === "desktop") ||
-                        constraints.video.chromeMediaSource === "desktop"
-                    );
-
-                    if (isDesktopCapture) {
-                        const width = constraints.video.mandatory?.maxWidth || constraints.video.width || 1920;
-                        const height = constraints.video.mandatory?.maxHeight || constraints.video.height || 1080;
-                        const frameRate = constraints.video.mandatory?.maxFrameRate || constraints.video.frameRate || 60;
-                        const displayConstraints = {
-                            video: {
-                                width: { ideal: width, max: width },
-                                height: { ideal: height, max: height },
-                                frameRate: { ideal: frameRate, max: frameRate }
-                            },
-                            audio: constraints.audio ? true : false,
-                            systemAudio: "include"
-                        };
-
-                        if (origGetDisplayMedia) {
-                            return origGetDisplayMedia(displayConstraints);
+                    if (currentTab === "screens") {
+                        const appTab = overlay.querySelector('[data-tab="apps"], [data-t="apps"]');
+                        const screenTab = overlay.querySelector('[data-tab="screens"], [data-t="screens"]');
+                        if (appTab) {
+                            appTab.classList.remove("active");
+                            appTab.classList.remove("on");
+                            appTab.setAttribute("aria-selected", "false");
+                        }
+                        if (screenTab) {
+                            screenTab.classList.add("active");
+                            screenTab.classList.add("on");
+                            screenTab.setAttribute("aria-selected", "true");
                         }
                     }
-                    return origGetUserMedia(constraints);
-                };
+
+                    let selectedSourceId = null;
+                    let selectedResolution = "1080p";
+                    let selectedFps = "60";
+
+                    // Quality Segment Handlers
+                    const resBtns = overlay.querySelectorAll("#rc-sc-res-group .rc-sc-segment-btn");
+                    resBtns.forEach(btn => {
+                        btn.addEventListener("click", () => {
+                            resBtns.forEach(b => b.classList.remove("active"));
+                            btn.classList.add("active");
+                            selectedResolution = btn.getAttribute("data-val") || "1080p";
+                        });
+                    });
+
+                    const fpsBtns = overlay.querySelectorAll("#rc-sc-fps-group .rc-sc-segment-btn");
+                    fpsBtns.forEach(btn => {
+                        btn.addEventListener("click", () => {
+                            fpsBtns.forEach(b => b.classList.remove("active"));
+                            btn.classList.add("active");
+                            selectedFps = btn.getAttribute("data-val") || "60";
+                        });
+                    });
+
+                    function renderCards() {
+                        const grid = document.getElementById("rc-sc-grid") || overlay.querySelector(".rc-sc-grid");
+                        if (!grid) return;
+                        grid.innerHTML = "";
+
+                        const allSources = window.__RUSTCORD_SOURCES__ || [];
+                        let filtered = [];
+
+                        if (currentTab === "apps") {
+                            filtered = allSources.filter(s => s.id && s.id.startsWith("window:"));
+                        } else if (currentTab === "screens" || currentTab === "screen") {
+                            filtered = allSources.filter(s => s.id && s.id.startsWith("screen:"));
+                        } else {
+                            filtered = [];
+                        }
+
+                        if (filtered.length === 0) {
+                            grid.innerHTML = `
+                                <div style="grid-column: span 2; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 220px; color: #949ba4;">
+                                    <div style="font-size: 32px; margin-bottom: 8px;">🔍</div>
+                                    <div style="font-weight: 500; font-size: 14px;">Источники не найдены</div>
+                                </div>
+                            `;
+                            return;
+                        }
+
+                        if (selectedSourceId && !filtered.some(s => s.id === selectedSourceId)) {
+                            selectedSourceId = null;
+                        }
+
+                        filtered.forEach(source => {
+                            const isSelected = source.id === selectedSourceId;
+                            const card = document.createElement("div");
+                            card.className = "rc-sc-card card" + (isSelected ? " selected sel" : "");
+                            card.setAttribute("data-source-id", source.id);
+
+                            let iconBg = "#5865f2";
+                            let iconChar = "🎮";
+                            const nameLower = (source.name || "").toLowerCase();
+                            if (nameLower.includes("folder") || nameLower.includes("проводник") || nameLower.includes("explorer")) {
+                                iconBg = "#d9a520";
+                                iconChar = "📁";
+                            } else if (nameLower.includes("code") || nameLower.includes("rust") || nameLower.includes("studio")) {
+                                iconBg = "#2f6fed";
+                                iconChar = "💻";
+                            } else if (nameLower.includes("chrome") || nameLower.includes("edge") || nameLower.includes("браузер")) {
+                                iconBg = "#ea4335";
+                                iconChar = "🌐";
+                            }
+
+                            const thumbSrc = source.url || source.icon || "";
+
+                            card.innerHTML = `
+                                <div class="rc-sc-thumb thumb">
+                                    <img src="${thumbSrc}" alt="${source.name || ''}" />
+                                </div>
+                                <div class="rc-sc-info name">
+                                    <span class="rc-sc-icon ic" style="background: ${iconBg};">${iconChar}</span>
+                                    <span class="rc-sc-name" title="${source.name || ''}">${source.name || ''}</span>
+                                </div>
+                            `;
+
+                            card.addEventListener("click", () => {
+                                selectedSourceId = source.id;
+                                renderCards();
+                            });
+
+                            grid.appendChild(card);
+                        });
+                    }
+
+                    // Tab switching
+                    const tabBtns = overlay.querySelectorAll(".rc-sc-tab, .tab");
+                    tabBtns.forEach(tab => {
+                        tab.addEventListener("click", () => {
+                            tabBtns.forEach(t => {
+                                t.classList.remove("active");
+                                t.classList.remove("on");
+                                t.setAttribute("aria-selected", "false");
+                            });
+                            tab.classList.add("active");
+                            tab.classList.add("on");
+                            tab.setAttribute("aria-selected", "true");
+                            currentTab = tab.getAttribute("data-tab") || tab.getAttribute("data-t") || "apps";
+                            renderCards();
+                        });
+                    });
+
+                    window.__UPDATE_RUSTCORD_SOURCES__ = () => {
+                        renderCards();
+                    };
+                    renderCards();
+
+                    const cleanup = () => {
+                        window.__UPDATE_RUSTCORD_SOURCES__ = () => {};
+                        window.removeEventListener("keydown", escHandler, true);
+                        try { overlay.remove(); } catch(_) {}
+                    };
+
+                    const handleCancel = () => {
+                        cleanup();
+                        reject(new DOMException("Permission denied by user", "NotAllowedError"));
+                    };
+
+                    // Cancel button
+                    const cancelBtn = overlay.querySelector("#rc-sc-cancel") || overlay.querySelector(".rc-sc-btn-cancel");
+                    if (cancelBtn) cancelBtn.addEventListener("click", handleCancel);
+
+                    // Close SVG button
+                    const closeBtn = overlay.querySelector("#rc-sc-close") || overlay.querySelector(".rc-sc-close-btn");
+                    if (closeBtn) closeBtn.addEventListener("click", handleCancel);
+
+                    // Backdrop click
+                    overlay.addEventListener("click", (e) => {
+                        if (e.target === overlay) {
+                            handleCancel();
+                        }
+                    });
+
+                    // Escape key dismiss
+                    const escHandler = (e) => {
+                        if (e.key === "Escape" || e.code === "Escape") {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleCancel();
+                        }
+                    };
+                    window.addEventListener("keydown", escHandler, true);
+
+                    // Submit / "Прямой эфир" button
+                    const submitBtn = overlay.querySelector("#rc-sc-submit") || overlay.querySelector(".rc-sc-btn-submit");
+                    if (submitBtn) {
+                        submitBtn.addEventListener("click", async () => {
+                            if (!selectedSourceId) {
+                                const origText = submitBtn.textContent;
+                                submitBtn.textContent = "Выберите источник";
+                                setTimeout(() => { submitBtn.textContent = origText; }, 1500);
+                                return;
+                            }
+
+                            cleanup();
+
+                            try {
+                                const RESOLUTION_CONSTRAINTS = {
+                                    "720p": { width: { ideal: 1280, max: 2560 }, height: { ideal: 720, max: 1440 } },
+                                    "1080p": { width: { ideal: 1920, max: 3840 }, height: { ideal: 1080, max: 2160 } }
+                                };
+                                const FPS_CONSTRAINTS = {
+                                    "30": { frameRate: { ideal: 30, max: 30 } },
+                                    "60": { frameRate: { ideal: 60, max: 60 } }
+                                };
+
+                                const resConst = RESOLUTION_CONSTRAINTS[selectedResolution] || RESOLUTION_CONSTRAINTS["1080p"];
+                                const fpsConst = FPS_CONSTRAINTS[selectedFps] || FPS_CONSTRAINTS["60"];
+
+                                const constraints = {
+                                    video: {
+                                        ...resConst,
+                                        ...fpsConst
+                                    },
+                                    audio: true,
+                                    systemAudio: "include"
+                                };
+                                const stream = await origGetDisplayMedia(constraints);
+                                resolve(stream);
+                            } catch (err) {
+                                reject(err);
+                            }
+                        });
+                    }
+                });
             }
 
-            // Hook getDisplayMedia: directly call origGetDisplayMedia with effective constraints
-            if (origGetDisplayMedia) {
-                navigator.mediaDevices.getDisplayMedia = function(constraints) {
-                    const effectiveConstraints = constraints || {
-                        video: {
-                            width: { ideal: 1920, max: 3840 },
-                            height: { ideal: 1080, max: 2160 },
-                            frameRate: { ideal: 60, max: 60 }
-                        },
-                        audio: true,
-                        systemAudio: "include"
-                    };
-                    return origGetDisplayMedia(effectiveConstraints);
-                };
-            }
+            navigator.mediaDevices.getDisplayMedia = function(constraints) {
+                return showDiscordScreenShareModal();
+            };
         }
-    })();
+    } catch(_) {}
 
     // 3. Block tracking, telemetry, and analytics endpoints
     const BLOCKED_DOMAINS = [
@@ -773,7 +832,268 @@
                 to { transform: translateY(0); opacity: 1; }
             }
 
-            /* Native Screen Share Modal rendered directly by Discord UI */
+            /* Authentic Discord Screen Share Picker Modal Styles */
+            #rustcord-screenshare-overlay {
+                position: fixed !important;
+                inset: 0 !important;
+                background: rgba(0, 0, 0, 0.8) !important;
+                backdrop-filter: blur(4px) !important;
+                z-index: 10000000 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                font-family: "gg sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+                animation: rcBackdropFade 0.18s ease-out forwards !important;
+                user-select: none !important;
+            }
+            @keyframes rcBackdropFade {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            .rc-sc-modal, .rc-modal-dialog, .dlg {
+                width: 600px !important;
+                max-width: 95vw !important;
+                background: #313338 !important;
+                border-radius: 8px !important;
+                padding: 24px !important;
+                box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6) !important;
+                display: flex !important;
+                flex-direction: column !important;
+                box-sizing: border-box !important;
+                animation: rcModalZoomIn 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards !important;
+            }
+            @keyframes rcModalZoomIn {
+                from {
+                    transform: scale(0.95);
+                    opacity: 0;
+                }
+                to {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+            }
+            @keyframes rcScaleIn {
+                from { transform: scale(0.95); opacity: 0; }
+                to { transform: scale(1); opacity: 1; }
+            }
+            .rc-sc-header {
+                display: flex !important;
+                align-items: flex-start !important;
+                justify-content: space-between !important;
+                margin-bottom: 20px !important;
+            }
+            .rc-sc-title {
+                font-size: 20px !important;
+                font-weight: 700 !important;
+                color: #f2f3f5 !important;
+                margin: 0 0 4px 0 !important;
+                line-height: 24px !important;
+            }
+            .rc-sc-subtitle {
+                font-size: 14px !important;
+                font-weight: 400 !important;
+                color: #949ba4 !important;
+                line-height: 18px !important;
+            }
+            .rc-sc-close-btn, .rc-dlg-close {
+                background: transparent !important;
+                border: none !important;
+                color: #b5bac1 !important;
+                cursor: pointer !important;
+                padding: 4px !important;
+                border-radius: 4px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                transition: color 0.15s ease !important;
+            }
+            .rc-sc-close-btn:hover, .rc-dlg-close:hover {
+                color: #ffffff !important;
+            }
+            .rc-sc-tabs, .tabs {
+                display: flex !important;
+                background: #1e1f22 !important;
+                border-radius: 8px !important;
+                padding: 2px !important;
+                gap: 4px !important;
+                margin-bottom: 16px !important;
+            }
+            .rc-sc-tab, .tab {
+                flex: 1 !important;
+                padding: 8px 16px !important;
+                border: none !important;
+                border-radius: 6px !important;
+                background: transparent !important;
+                color: #949ba4 !important;
+                font-size: 14px !important;
+                font-weight: 500 !important;
+                cursor: pointer !important;
+                transition: background-color 0.15s, color 0.15s !important;
+            }
+            .rc-sc-tab:hover, .tab:hover {
+                color: #dbdee1 !important;
+                background-color: rgba(255, 255, 255, 0.04) !important;
+            }
+            .rc-sc-tab.active, .rc-sc-tab.on, .tab.active, .tab.on {
+                background-color: #35373c !important;
+                color: #ffffff !important;
+                font-weight: 600 !important;
+            }
+            .rc-sc-grid, .grid {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 16px !important;
+                max-height: 310px !important;
+                overflow-y: auto !important;
+                padding: 4px !important;
+                margin-bottom: 20px !important;
+            }
+            .rc-sc-card, .card {
+                background-color: #2b2d31 !important;
+                border-radius: 8px !important;
+                padding: 8px !important;
+                cursor: pointer !important;
+                border: 2px solid transparent !important;
+                transition: border-color 0.15s, background-color 0.15s !important;
+                box-sizing: border-box !important;
+            }
+            .rc-sc-card:hover, .card:hover {
+                border-color: #404249 !important;
+                background-color: #313338 !important;
+            }
+            .rc-sc-card.selected, .rc-sc-card.sel, .card.selected, .card.sel {
+                border-color: #5865f2 !important;
+                background-color: #313338 !important;
+            }
+            .rc-sc-thumb, .thumb {
+                aspect-ratio: 16 / 9 !important;
+                width: 100% !important;
+                border-radius: 4px !important;
+                overflow: hidden !important;
+                background-color: #1e1f22 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            .rc-sc-thumb img, .thumb img {
+                width: 100% !important;
+                height: 100% !important;
+                object-fit: cover !important;
+                display: block !important;
+            }
+            .rc-sc-info, .name {
+                display: flex !important;
+                align-items: center !important;
+                gap: 8px !important;
+                margin-top: 8px !important;
+            }
+            .rc-sc-icon, .ic {
+                width: 20px !important;
+                height: 20px !important;
+                border-radius: 4px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                font-size: 12px !important;
+                color: #ffffff !important;
+                flex-shrink: 0 !important;
+            }
+            .rc-sc-name {
+                font-size: 13.5px !important;
+                font-weight: 500 !important;
+                color: #dbdee1 !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                flex: 1 !important;
+            }
+            .rc-sc-quality-section {
+                background-color: #2b2d31 !important;
+                border-radius: 8px !important;
+                padding: 12px 16px !important;
+                margin-bottom: 24px !important;
+            }
+            .rc-sc-section-label {
+                font-size: 12px !important;
+                font-weight: 700 !important;
+                text-transform: uppercase !important;
+                color: #b5bac1 !important;
+                letter-spacing: 0.5px !important;
+                margin-bottom: 8px !important;
+            }
+            .rc-sc-quality-controls {
+                display: flex !important;
+                align-items: center !important;
+                gap: 16px !important;
+            }
+            .rc-sc-segment-group {
+                display: flex !important;
+                background-color: #1e1f22 !important;
+                border-radius: 6px !important;
+                padding: 2px !important;
+                gap: 2px !important;
+            }
+            .rc-sc-segment-btn {
+                border: none !important;
+                background: transparent !important;
+                color: #b5bac1 !important;
+                font-size: 13px !important;
+                font-weight: 500 !important;
+                padding: 6px 14px !important;
+                border-radius: 4px !important;
+                cursor: pointer !important;
+                transition: background-color 0.15s, color 0.15s !important;
+            }
+            .rc-sc-segment-btn:hover {
+                color: #ffffff !important;
+            }
+            .rc-sc-segment-btn.active {
+                background-color: #35373c !important;
+                color: #ffffff !important;
+                font-weight: 600 !important;
+            }
+            .rc-sc-footer, .foot {
+                display: flex !important;
+                justify-content: flex-end !important;
+                align-items: center !important;
+                gap: 16px !important;
+            }
+            .rc-sc-btn-cancel, .rc-cancel-flat {
+                background: transparent !important;
+                border: none !important;
+                color: #ffffff !important;
+                font-size: 14px !important;
+                font-weight: 500 !important;
+                padding: 10px 16px !important;
+                cursor: pointer !important;
+                text-decoration: underline-offset: 4px !important;
+                transition: opacity 0.15s !important;
+            }
+            .rc-sc-btn-cancel:hover, .rc-cancel-flat:hover {
+                text-decoration: underline !important;
+                opacity: 0.8 !important;
+            }
+            .rc-sc-btn-submit, .go {
+                background-color: #5865f2 !important;
+                color: #ffffff !important;
+                border: none !important;
+                border-radius: 4px !important;
+                font-size: 14px !important;
+                font-weight: 500 !important;
+                padding: 10px 24px !important;
+                cursor: pointer !important;
+                transition: background-color 0.17s ease !important;
+            }
+            .rc-sc-btn-submit:hover, .go:hover {
+                background-color: #4752c4 !important;
+            }
+            .rc-sc-btn-submit:active, .go:active {
+                background-color: #3c45a5 !important;
+            }
+            .rc-sc-btn-submit:disabled, .go:disabled {
+                opacity: 0.5 !important;
+                cursor: not-allowed !important;
+            }
         `;
         if (document.head) {
             document.head.appendChild(style);
