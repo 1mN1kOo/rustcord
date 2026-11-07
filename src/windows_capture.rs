@@ -1,8 +1,15 @@
+use std::io::Cursor;
+use image::{ImageFormat, RgbaImage};
 use windows::core::BOOL;
 use windows::Win32::Foundation::{HWND, LPARAM, RECT};
+use windows::Win32::Graphics::Gdi::{
+    CreateCompatibleBitmap, CreateCompatibleDC, DeleteDC, DeleteObject, GetDC, GetDIBits,
+    ReleaseDC, SelectObject, SetStretchBltMode, StretchBlt, BITMAPINFO, BITMAPINFOHEADER,
+    BI_RGB, DIB_RGB_COLORS, HGDIOBJ, SRCCOPY, STRETCH_HALFTONE,
+};
 use windows::Win32::UI::WindowsAndMessaging::{
-    EnumWindows, GetWindowLongPtrW, GetWindowRect, GetWindowTextLengthW, GetWindowTextW,
-    IsWindowVisible, GWL_EXSTYLE, WS_EX_TOOLWINDOW,
+    EnumWindows, GetSystemMetrics, GetWindowLongPtrW, GetWindowRect, GetWindowTextLengthW,
+    GetWindowTextW, IsWindowVisible, GWL_EXSTYLE, SM_CXSCREEN, SM_CYSCREEN, WS_EX_TOOLWINDOW,
 };
 
 #[derive(serde::Serialize, Clone, Debug)]
@@ -13,18 +20,20 @@ pub struct CaptureSource {
     pub icon: Option<String>,
 }
 
+const THUMB_W: u32 = 320;
+const THUMB_H: u32 = 180;
+
 pub fn get_desktop_sources() -> Vec<CaptureSource> {
     let mut sources = Vec::new();
 
-    // 1. Add Primary Screen
-    let screen_svg = format!(
-        "data:image/svg+xml;charset=utf-8,{}",
-        urlencoding::encode(&create_thumbnail_svg("Весь экран", "#5865F2", "#4752C4", "🖥️"))
-    );
+    // 1. Primary Screen: REAL desktop screenshot
+    let screen_thumb = capture_screen_thumbnail(THUMB_W, THUMB_H)
+        .unwrap_or_else(|| create_fallback_svg("Весь экран", "🖥️"));
+
     sources.push(CaptureSource {
         id: "screen:0:0".to_string(),
         name: "Весь экран".to_string(),
-        url: screen_svg,
+        url: screen_thumb,
         icon: None,
     });
 
@@ -40,7 +49,6 @@ pub fn get_desktop_sources() -> Vec<CaptureSource> {
             return BOOL(1);
         }
 
-        // Skip tooltips, tray popups, invisible utility windows
         let ex_style = GetWindowLongPtrW(hwnd, GWL_EXSTYLE) as u32;
         if (ex_style & WS_EX_TOOLWINDOW.0) != 0 {
             return BOOL(1);
@@ -63,7 +71,6 @@ pub fn get_desktop_sources() -> Vec<CaptureSource> {
         let copied = GetWindowTextW(hwnd, &mut buf);
         if copied > 0 {
             let title = String::from_utf16_lossy(&buf[..copied as usize]).trim().to_string();
-            // Filter out system windows that users never want to stream
             let lower = title.to_lowercase();
             if !title.is_empty()
                 && !lower.contains("program manager")
@@ -83,22 +90,10 @@ pub fn get_desktop_sources() -> Vec<CaptureSource> {
         let _ = EnumWindows(Some(enum_windows_callback), LPARAM(&mut data as *mut _ as isize));
     }
 
-    // Color palettes for visual distinction
-    let colors = [
-        ("#23A55A", "#1C8B4C", "🎮"),
-        ("#F0B232", "#C69022", "⚡"),
-        ("#EB459E", "#BA317A", "✨"),
-        ("#5865F2", "#3C45A5", "💬"),
-        ("#57F287", "#3CA75E", "🚀"),
-        ("#ED4245", "#BA2C30", "🎯"),
-    ];
-
-    for (idx, (hwnd, title)) in data.windows.into_iter().enumerate() {
-        let (c1, c2, emoji) = colors[idx % colors.len()];
-        let thumb = format!(
-            "data:image/svg+xml;charset=utf-8,{}",
-            urlencoding::encode(&create_thumbnail_svg(&title, c1, c2, emoji))
-        );
+    // Capture real live screenshot for each window
+    for (hwnd, title) in data.windows {
+        let thumb = capture_window_thumbnail(hwnd, THUMB_W, THUMB_H)
+            .unwrap_or_else(|| create_fallback_svg(&title, "🗔"));
 
         sources.push(CaptureSource {
             id: format!("window:{}:0", hwnd.0 as isize),
@@ -111,8 +106,158 @@ pub fn get_desktop_sources() -> Vec<CaptureSource> {
     sources
 }
 
-fn create_thumbnail_svg(title: &str, bg1: &str, bg2: &str, emoji: &str) -> String {
-    // Escape XML special chars
+fn capture_screen_thumbnail(target_w: u32, target_h: u32) -> Option<String> {
+    unsafe {
+        let screen_w = GetSystemMetrics(SM_CXSCREEN);
+        let screen_h = GetSystemMetrics(SM_CYSCREEN);
+        if screen_w <= 0 || screen_h <= 0 {
+            return None;
+        }
+
+        let hdc_screen = GetDC(None);
+        if hdc_screen.is_invalid() {
+            return None;
+        }
+
+        let hdc_mem = CreateCompatibleDC(Some(hdc_screen));
+        let hbm = CreateCompatibleBitmap(hdc_screen, target_w as i32, target_h as i32);
+        let old_bm = SelectObject(hdc_mem, HGDIOBJ(hbm.0));
+
+        SetStretchBltMode(hdc_mem, STRETCH_HALFTONE);
+        let _ = StretchBlt(
+            hdc_mem, 0, 0, target_w as i32, target_h as i32,
+            Some(hdc_screen), 0, 0, screen_w, screen_h,
+            SRCCOPY,
+        );
+
+        let mut bmi = BITMAPINFO {
+            bmiHeader: BITMAPINFOHEADER {
+                biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
+                biWidth: target_w as i32,
+                biHeight: -(target_h as i32),
+                biPlanes: 1,
+                biBitCount: 32,
+                biCompression: BI_RGB.0,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        let mut raw_pixels = vec![0u8; (target_w * target_h * 4) as usize];
+        let lines = GetDIBits(
+            hdc_mem,
+            hbm,
+            0,
+            target_h,
+            Some(raw_pixels.as_mut_ptr() as _),
+            &mut bmi,
+            DIB_RGB_COLORS,
+        );
+
+        SelectObject(hdc_mem, old_bm);
+        let _ = DeleteObject(HGDIOBJ(hbm.0));
+        let _ = DeleteDC(hdc_mem);
+        ReleaseDC(None, hdc_screen);
+
+        if lines == 0 {
+            return None;
+        }
+
+        for chunk in raw_pixels.chunks_exact_mut(4) {
+            chunk.swap(0, 2);
+            chunk[3] = 255;
+        }
+
+        if let Some(img) = RgbaImage::from_raw(target_w, target_h, raw_pixels) {
+            let mut jpeg_bytes = Vec::new();
+            let mut cursor = Cursor::new(&mut jpeg_bytes);
+            if img.write_to(&mut cursor, ImageFormat::Jpeg).is_ok() {
+                use base64::Engine;
+                let b64 = base64::engine::general_purpose::STANDARD.encode(&jpeg_bytes);
+                return Some(format!("data:image/jpeg;base64,{}", b64));
+            }
+        }
+
+        None
+    }
+}
+
+fn capture_window_thumbnail(hwnd: HWND, target_w: u32, target_h: u32) -> Option<String> {
+    unsafe {
+        let mut rect = RECT::default();
+        let _ = GetWindowRect(hwnd, &mut rect);
+        let src_w = (rect.right - rect.left).max(1);
+        let src_h = (rect.bottom - rect.top).max(1);
+
+        let hdc_screen = GetDC(None);
+        if hdc_screen.is_invalid() {
+            return None;
+        }
+
+        let hdc_mem = CreateCompatibleDC(Some(hdc_screen));
+        let hbm = CreateCompatibleBitmap(hdc_screen, target_w as i32, target_h as i32);
+        let old_bm = SelectObject(hdc_mem, HGDIOBJ(hbm.0));
+
+        SetStretchBltMode(hdc_mem, STRETCH_HALFTONE);
+        let _ = StretchBlt(
+            hdc_mem, 0, 0, target_w as i32, target_h as i32,
+            Some(hdc_screen), rect.left, rect.top, src_w, src_h,
+            SRCCOPY,
+        );
+
+        let mut bmi = BITMAPINFO {
+            bmiHeader: BITMAPINFOHEADER {
+                biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
+                biWidth: target_w as i32,
+                biHeight: -(target_h as i32),
+                biPlanes: 1,
+                biBitCount: 32,
+                biCompression: BI_RGB.0,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        let mut raw_pixels = vec![0u8; (target_w * target_h * 4) as usize];
+        let lines = GetDIBits(
+            hdc_mem,
+            hbm,
+            0,
+            target_h,
+            Some(raw_pixels.as_mut_ptr() as _),
+            &mut bmi,
+            DIB_RGB_COLORS,
+        );
+
+        SelectObject(hdc_mem, old_bm);
+        let _ = DeleteObject(HGDIOBJ(hbm.0));
+        let _ = DeleteDC(hdc_mem);
+        ReleaseDC(None, hdc_screen);
+
+        if lines == 0 {
+            return None;
+        }
+
+        for chunk in raw_pixels.chunks_exact_mut(4) {
+            chunk.swap(0, 2);
+            chunk[3] = 255;
+        }
+
+        if let Some(img) = RgbaImage::from_raw(target_w, target_h, raw_pixels) {
+            let mut jpeg_bytes = Vec::new();
+            let mut cursor = Cursor::new(&mut jpeg_bytes);
+            if img.write_to(&mut cursor, ImageFormat::Jpeg).is_ok() {
+                use base64::Engine;
+                let b64 = base64::engine::general_purpose::STANDARD.encode(&jpeg_bytes);
+                return Some(format!("data:image/jpeg;base64,{}", b64));
+            }
+        }
+
+        None
+    }
+}
+
+fn create_fallback_svg(title: &str, emoji: &str) -> String {
     let escaped_title = title
         .replace('&', "&amp;")
         .replace('<', "&lt;")
@@ -120,7 +265,6 @@ fn create_thumbnail_svg(title: &str, bg1: &str, bg2: &str, emoji: &str) -> Strin
         .replace('"', "&quot;")
         .replace('\'', "&apos;");
 
-    // Truncate long titles for thumbnail display
     let display_title = if escaped_title.chars().count() > 24 {
         let s: String = escaped_title.chars().take(22).collect();
         format!("{}...", s)
@@ -128,28 +272,16 @@ fn create_thumbnail_svg(title: &str, bg1: &str, bg2: &str, emoji: &str) -> Strin
         escaped_title
     };
 
-    format!(
-        r##"<svg xmlns="http://www.w3.org/2000/svg" width="300" height="180" viewBox="0 0 300 180">
-  <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="{bg1}" stop-opacity="0.9" />
-      <stop offset="100%" stop-color="{bg2}" stop-opacity="0.95" />
-    </linearGradient>
-    <linearGradient id="overlay" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#000000" stop-opacity="0.1" />
-      <stop offset="100%" stop-color="#000000" stop-opacity="0.6" />
-    </linearGradient>
-  </defs>
-  <rect width="100%" height="100%" rx="10" fill="url(#bg)" />
-  <rect width="100%" height="100%" rx="10" fill="url(#overlay)" />
-  <rect x="2" y="2" width="296" height="176" rx="8" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" />
-  <circle cx="150" cy="72" r="32" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" />
-  <text x="150" y="80" font-family="'Segoe UI Emoji', 'Apple Color Emoji', 'Segoe UI', sans-serif" font-size="28" text-anchor="middle">{emoji}</text>
-  <text x="150" y="138" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">{display_title}</text>
+    let svg = format!(
+        r##"<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180">
+  <rect width="100%" height="100%" rx="6" fill="#1e1f22" />
+  <rect x="2" y="2" width="316" height="176" rx="5" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1.5" />
+  <text x="160" y="85" font-family="'Segoe UI Emoji', sans-serif" font-size="32" text-anchor="middle">{emoji}</text>
+  <text x="160" y="125" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#949ba4" text-anchor="middle">{display_title}</text>
 </svg>"##,
-        bg1 = bg1,
-        bg2 = bg2,
         emoji = emoji,
         display_title = display_title
-    )
+    );
+
+    format!("data:image/svg+xml;charset=utf-8,{}", urlencoding::encode(&svg))
 }

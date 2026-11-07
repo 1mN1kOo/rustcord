@@ -11,6 +11,7 @@ tauri-plugin-single-instance = "2.5.5"
 windows = { version = "0.62", features = ["Win32_UI_WindowsAndMessaging", "Win32_Foundation", "Win32_Graphics_Gdi"] }
 base64 = "0.22"
 urlencoding = "2.1"
+image = { version = "0.25", default-features = false, features = ["jpeg", "png"] }
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

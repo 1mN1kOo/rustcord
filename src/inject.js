@@ -398,28 +398,20 @@
                             card.className = "rc-sc-card card" + (isSelected ? " selected sel" : "");
                             card.setAttribute("data-source-id", source.id);
 
-                            let iconBg = "#5865f2";
-                            let iconChar = "🎮";
-                            const nameLower = (source.name || "").toLowerCase();
-                            if (nameLower.includes("folder") || nameLower.includes("проводник") || nameLower.includes("explorer")) {
-                                iconBg = "#d9a520";
-                                iconChar = "📁";
-                            } else if (nameLower.includes("code") || nameLower.includes("rust") || nameLower.includes("studio")) {
-                                iconBg = "#2f6fed";
-                                iconChar = "💻";
-                            } else if (nameLower.includes("chrome") || nameLower.includes("edge") || nameLower.includes("браузер")) {
-                                iconBg = "#ea4335";
-                                iconChar = "🌐";
-                            }
+                            const isScreen = (source.id || "").startsWith("screen:");
+                            const iconSvg = isScreen 
+                                ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="#949ba4"><path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/></svg>'
+                                : '<svg width="18" height="18" viewBox="0 0 24 24" fill="#949ba4"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/></svg>';
 
-                            const thumbSrc = source.url || source.icon || "";
+                            const thumbSrc = source.url || "";
 
                             card.innerHTML = `
                                 <div class="rc-sc-thumb thumb">
-                                    <img src="${thumbSrc}" alt="${source.name || ''}" />
+                                    ${thumbSrc ? `<img src="${thumbSrc}" alt="" />` : '<div class="rc-sc-placeholder">🖥️</div>'}
+                                    ${isSelected ? '<div class="rc-sc-check-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="#ffffff"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg></div>' : ''}
                                 </div>
                                 <div class="rc-sc-info name">
-                                    <span class="rc-sc-icon ic" style="background: ${iconBg};">${iconChar}</span>
+                                    <span class="rc-sc-icon ic">${iconSvg}</span>
                                     <span class="rc-sc-name" title="${source.name || ''}">${source.name || ''}</span>
                                 </div>
                             `;
@@ -965,7 +957,49 @@
                 border-color: #5865f2 !important;
                 background-color: #313338 !important;
             }
+            
             .rc-sc-thumb, .thumb {
+                position: relative !important;
+            }
+            .rc-sc-check-badge {
+                position: absolute !important;
+                top: 8px !important;
+                right: 8px !important;
+                width: 24px !important;
+                height: 24px !important;
+                border-radius: 50% !important;
+                background-color: #5865f2 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important;
+                z-index: 10 !important;
+            }
+            .rc-sc-card, .card {
+                background-color: #2b2d31 !important;
+                border-radius: 8px !important;
+                padding: 8px !important;
+                cursor: pointer !important;
+                border: 2px solid transparent !important;
+                transition: border-color 0.15s ease, background-color 0.15s ease !important;
+            }
+            .rc-sc-card:hover, .card:hover {
+                background-color: #35373c !important;
+                border-color: #4e5058 !important;
+            }
+            .rc-sc-card.selected, .rc-sc-card.sel, .card.selected, .card.sel {
+                border-color: #5865f2 !important;
+                background-color: #35373c !important;
+            }
+            .rc-sc-thumb img, .thumb img {
+                width: 100% !important;
+                height: 100% !important;
+                object-fit: cover !important;
+                display: block !important;
+                border-radius: 4px !important;
+            }
+    
+.rc-sc-thumb, .thumb {
                 aspect-ratio: 16 / 9 !important;
                 width: 100% !important;
                 border-radius: 4px !important;
