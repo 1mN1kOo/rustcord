@@ -1,1 +1,1 @@
-{"default":{"identifier":"default","description":"Discord remote access capability","remote":{"urls":["https://discord.com/*"]},"local":true,"windows":["main"],"permissions":["core:default"]}}
+{"default":{"identifier":"default","description":"Discord remote access capability","remote":{"urls":["https://discord.com/*"]},"local":true,"windows":["main"],"permissions":["core:default","allow-list-sources","allow-start-capture","allow-stop-capture"]}}

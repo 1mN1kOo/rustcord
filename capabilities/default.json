@@ -4,7 +4,10 @@
   "description": "Discord remote access capability",
   "windows": ["main"],
   "permissions": [
-    "core:default"
+    "core:default",
+    "allow-list-sources",
+    "allow-start-capture",
+    "allow-stop-capture"
   ],
   "remote": {
     "urls": ["https://discord.com/*"]

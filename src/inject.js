@@ -851,6 +851,10 @@
                                         canvas.width = widthNum;
                                         canvas.height = heightNum;
                                         const ctx = canvas.getContext("2d", { alpha: false });
+                                        if (ctx) {
+                                            ctx.fillStyle = "#1e1f22";
+                                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                        }
 
                                         let stream = null;
                                         if (typeof canvas.captureStream === "function") {
@@ -861,11 +865,9 @@
                                             const img = new Image();
                                             let isDrawing = false;
                                             img.onload = () => {
-                                                if (canvas.width !== img.naturalWidth || canvas.height !== img.naturalHeight) {
-                                                    canvas.width = img.naturalWidth;
-                                                    canvas.height = img.naturalHeight;
+                                                if (ctx) {
+                                                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                                                 }
-                                                ctx.drawImage(img, 0, 0);
                                                 isDrawing = false;
                                             };
 
@@ -893,8 +895,15 @@
 
                                             const vTracks = stream.getVideoTracks();
                                             if (vTracks.length > 0) {
+                                                const origStop = vTracks[0].stop ? vTracks[0].stop.bind(vTracks[0]) : null;
+                                                vTracks[0].stop = function() {
+                                                    if (origStop) origStop();
+                                                    if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === "function") {
+                                                        window.__TAURI__.core.invoke("stop_capture").catch(() => {});
+                                                    }
+                                                };
                                                 vTracks[0].addEventListener("ended", () => {
-                                                    if (window.__TAURI__ && window.__TAURI__.core) {
+                                                    if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === "function") {
                                                         window.__TAURI__.core.invoke("stop_capture").catch(() => {});
                                                     }
                                                 });

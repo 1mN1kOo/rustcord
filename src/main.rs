@@ -5,7 +5,6 @@ mod dpi_bypass;
 mod sources;
 mod theme;
 mod updater;
-mod windows_capture;
 
 use tauri::{
     menu::{CheckMenuItem, Menu, MenuItem},
@@ -180,6 +179,18 @@ fn main() {
                     true
                 }
             })
+            .on_page_load({
+                let page_app = app_handle.clone();
+                move |_w, payload| {
+                    if let tauri::webview::PageLoadEvent::Finished = payload.event() {
+                        if let Some(dir) = theme::get_themes_dir(&page_app) {
+                            if let Some(css) = theme::read_user_theme(&dir) {
+                                theme::apply_theme(&page_app, &css);
+                            }
+                        }
+                    }
+                }
+            })
             .build()?;
 
             let settings = updater::load_settings();
@@ -304,9 +315,9 @@ fn main() {
             });
 
             let w_sources = window.clone();
-            std::thread::spawn(move || loop {
+            std::thread::spawn(move || {
                 std::thread::sleep(std::time::Duration::from_millis(1500));
-                let sources = windows_capture::get_desktop_sources();
+                let sources = sources::list_sources();
                 if let Ok(json) = serde_json::to_string(&sources) {
                     let _ = w_sources.eval(&format!(
                         "window.__RUSTCORD_SOURCES__ = {}; if (window.__UPDATE_RUSTCORD_SOURCES__) window.__UPDATE_RUSTCORD_SOURCES__();",
