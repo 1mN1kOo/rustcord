@@ -1,6 +1,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod capture;
 mod dpi_bypass;
+mod sources;
+mod theme;
 mod updater;
 mod windows_capture;
 
@@ -180,7 +183,7 @@ fn main() {
             .build()?;
 
             let settings = updater::load_settings();
-            let ver_i = MenuItem::with_id(app, "ver", "Rustcord v1.1.5", false, None::<&str>)?;
+            let ver_i = MenuItem::with_id(app, "ver", "Rustcord v1.1.6", false, None::<&str>)?;
             let show_i = MenuItem::with_id(app, "show", "Показать Rustcord", true, None::<&str>)?;
             let reload_i = MenuItem::with_id(app, "reload", "Перезагрузить", true, None::<&str>)?;
             let update_i = MenuItem::with_id(app, "update", "Проверить обновления", true, None::<&str>)?;
@@ -214,7 +217,7 @@ fn main() {
 
                 let _tray = TrayIconBuilder::new()
                     .icon(icon.clone())
-                    .tooltip("Rustcord v1.1.5")
+                    .tooltip("Rustcord v1.1.6")
                     .menu(&menu)
                     .show_menu_on_left_click(false)
                     .on_menu_event(move |app, event| match event.id.as_ref() {
@@ -332,8 +335,15 @@ fn main() {
                 }
             });
 
+            theme::init_theme_manager(app.handle().clone());
+
             Ok(())
         })
+        .invoke_handler(tauri::generate_handler![
+            sources::list_sources,
+            capture::start_capture,
+            capture::stop_capture
+        ])
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { .. } = event {
                 window.app_handle().exit(0);

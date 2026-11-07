@@ -39,6 +39,7 @@ pub fn start_dpi_proxy() {
     });
 }
 
+#[allow(dead_code)]
 pub fn stop_dpi_proxy() {
     IS_RUNNING.store(false, Ordering::SeqCst);
 }

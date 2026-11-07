@@ -6,7 +6,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-pub const CURRENT_VERSION: &str = "1.1.5";
+pub const CURRENT_VERSION: &str = "1.1.6";
 pub const VERSION_CHECK_URL: &str = "https://rustcord.mollra.xyz/version.json";
 pub const DEFAULT_INSTALLER_URL: &str = "https://rustcord.mollra.xyz/RustcordSetup.exe";
 const CREATE_NO_WINDOW: u32 = 0x08000000;
