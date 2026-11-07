@@ -5,12 +5,30 @@ use windows::Win32::Foundation::{HWND, LPARAM, RECT};
 use windows::Win32::Graphics::Gdi::{
     CreateCompatibleBitmap, CreateCompatibleDC, DeleteDC, DeleteObject, GetDC, GetDIBits,
     ReleaseDC, SelectObject, SetStretchBltMode, StretchBlt, BITMAPINFO, BITMAPINFOHEADER,
-    BI_RGB, DIB_RGB_COLORS, HGDIOBJ, SRCCOPY, STRETCH_HALFTONE,
+    BI_RGB, DIB_RGB_COLORS, HDC, HGDIOBJ, SRCCOPY, STRETCH_HALFTONE,
 };
 use windows::Win32::UI::WindowsAndMessaging::{
     EnumWindows, GetSystemMetrics, GetWindowLongPtrW, GetWindowRect, GetWindowTextLengthW,
-    GetWindowTextW, IsWindowVisible, GWL_EXSTYLE, SM_CXSCREEN, SM_CYSCREEN, WS_EX_TOOLWINDOW,
+    GetWindowTextW, IsIconic, IsWindowVisible, GWL_EXSTYLE, SM_CXSCREEN, SM_CYSCREEN, WS_EX_TOOLWINDOW,
 };
+
+#[link(name = "user32")]
+extern "system" {
+    fn PrintWindow(hwnd: HWND, hdc_blt: HDC, n_flags: u32) -> BOOL;
+}
+
+#[link(name = "dwmapi")]
+extern "system" {
+    fn DwmGetWindowAttribute(
+        hwnd: HWND,
+        dw_attribute: u32,
+        pv_attribute: *mut std::ffi::c_void,
+        cb_attribute: u32,
+    ) -> i32;
+}
+
+const PW_RENDERFULLCONTENT: u32 = 2;
+const DWMWA_CLOAKED: u32 = 14;
 
 #[derive(serde::Serialize, Clone, Debug)]
 pub struct CaptureSource {
@@ -49,8 +67,24 @@ pub fn get_desktop_sources() -> Vec<CaptureSource> {
             return BOOL(1);
         }
 
+        if IsIconic(hwnd).as_bool() {
+            return BOOL(1);
+        }
+
         let ex_style = GetWindowLongPtrW(hwnd, GWL_EXSTYLE) as u32;
         if (ex_style & WS_EX_TOOLWINDOW.0) != 0 {
+            return BOOL(1);
+        }
+
+        // Check if window is cloaked by DWM (e.g. suspended UWP apps in background)
+        let mut cloaked: u32 = 0;
+        let hr = DwmGetWindowAttribute(
+            hwnd,
+            DWMWA_CLOAKED,
+            &mut cloaked as *mut _ as *mut std::ffi::c_void,
+            std::mem::size_of::<u32>() as u32,
+        );
+        if hr == 0 && cloaked != 0 {
             return BOOL(1);
         }
 
@@ -58,7 +92,7 @@ pub fn get_desktop_sources() -> Vec<CaptureSource> {
         let _ = GetWindowRect(hwnd, &mut rect);
         let width = rect.right - rect.left;
         let height = rect.bottom - rect.top;
-        if width < 150 || height < 100 {
+        if width <= 150 || height <= 100 {
             return BOOL(1);
         }
 
@@ -74,8 +108,14 @@ pub fn get_desktop_sources() -> Vec<CaptureSource> {
             let lower = title.to_lowercase();
             if !title.is_empty()
                 && !lower.contains("program manager")
-                && !lower.contains("windows input experience")
+                && !lower.contains("диспетчер программ")
+                && !lower.contains("windows input")
+                && !lower.contains("интерфейс ввода")
+                && !lower.contains("xbox")
+                && !lower.contains("cortana")
                 && !lower.contains("settings")
+                && !lower.contains("параметры")
+                && !lower.contains("настройки")
                 && !lower.contains("setup")
             {
                 data.windows.push((hwnd, title));
@@ -163,6 +203,12 @@ fn capture_screen_thumbnail(target_w: u32, target_h: u32) -> Option<String> {
             return None;
         }
 
+        // Check if raw_pixels is entirely black
+        let is_all_black = raw_pixels.chunks_exact(4).all(|p| p[0] == 0 && p[1] == 0 && p[2] == 0);
+        if is_all_black {
+            return None;
+        }
+
         for chunk in raw_pixels.chunks_exact_mut(4) {
             chunk.swap(0, 2);
             chunk[3] = 255;
@@ -198,12 +244,37 @@ fn capture_window_thumbnail(hwnd: HWND, target_w: u32, target_h: u32) -> Option<
         let hbm = CreateCompatibleBitmap(hdc_screen, target_w as i32, target_h as i32);
         let old_bm = SelectObject(hdc_mem, HGDIOBJ(hbm.0));
 
-        SetStretchBltMode(hdc_mem, STRETCH_HALFTONE);
-        let _ = StretchBlt(
-            hdc_mem, 0, 0, target_w as i32, target_h as i32,
-            Some(hdc_screen), rect.left, rect.top, src_w, src_h,
-            SRCCOPY,
-        );
+        // Create compatible DC and bitmap matching window dimensions for PrintWindow
+        let hdc_src = CreateCompatibleDC(Some(hdc_screen));
+        let hbm_src = CreateCompatibleBitmap(hdc_screen, src_w, src_h);
+        let old_src_bm = SelectObject(hdc_src, HGDIOBJ(hbm_src.0));
+
+        // Attempt PrintWindow with PW_RENDERFULLCONTENT, then fallback to 0
+        let mut print_ok = PrintWindow(hwnd, hdc_src, PW_RENDERFULLCONTENT).as_bool();
+        if !print_ok {
+            print_ok = PrintWindow(hwnd, hdc_src, 0).as_bool();
+        }
+
+        if print_ok {
+            SetStretchBltMode(hdc_mem, STRETCH_HALFTONE);
+            let _ = StretchBlt(
+                hdc_mem, 0, 0, target_w as i32, target_h as i32,
+                Some(hdc_src), 0, 0, src_w, src_h,
+                SRCCOPY,
+            );
+        } else {
+            // Fallback to screen DC StretchBlt
+            SetStretchBltMode(hdc_mem, STRETCH_HALFTONE);
+            let _ = StretchBlt(
+                hdc_mem, 0, 0, target_w as i32, target_h as i32,
+                Some(hdc_screen), rect.left, rect.top, src_w, src_h,
+                SRCCOPY,
+            );
+        }
+
+        SelectObject(hdc_src, old_src_bm);
+        let _ = DeleteObject(HGDIOBJ(hbm_src.0));
+        let _ = DeleteDC(hdc_src);
 
         let mut bmi = BITMAPINFO {
             bmiHeader: BITMAPINFOHEADER {
@@ -229,12 +300,38 @@ fn capture_window_thumbnail(hwnd: HWND, target_w: u32, target_h: u32) -> Option<
             DIB_RGB_COLORS,
         );
 
+        let mut is_all_black = lines == 0 || raw_pixels.chunks_exact(4).all(|p| p[0] == 0 && p[1] == 0 && p[2] == 0);
+
+        // If PrintWindow produced an entirely black buffer (e.g. hardware overlay occlusion),
+        // fallback to screen DC StretchBlt
+        if is_all_black && print_ok {
+            SetStretchBltMode(hdc_mem, STRETCH_HALFTONE);
+            let _ = StretchBlt(
+                hdc_mem, 0, 0, target_w as i32, target_h as i32,
+                Some(hdc_screen), rect.left, rect.top, src_w, src_h,
+                SRCCOPY,
+            );
+
+            let lines2 = GetDIBits(
+                hdc_mem,
+                hbm,
+                0,
+                target_h,
+                Some(raw_pixels.as_mut_ptr() as _),
+                &mut bmi,
+                DIB_RGB_COLORS,
+            );
+            if lines2 > 0 {
+                is_all_black = raw_pixels.chunks_exact(4).all(|p| p[0] == 0 && p[1] == 0 && p[2] == 0);
+            }
+        }
+
         SelectObject(hdc_mem, old_bm);
         let _ = DeleteObject(HGDIOBJ(hbm.0));
         let _ = DeleteDC(hdc_mem);
         ReleaseDC(None, hdc_screen);
 
-        if lines == 0 {
+        if is_all_black {
             return None;
         }
 
