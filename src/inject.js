@@ -1,6 +1,6 @@
 // Rustcord Native App Enforcer, Permissions Auto-Grant, Telemetry Blocker & Auto-Updater
 (function() {
-    const CURRENT_VERSION = "1.1.3";
+    const CURRENT_VERSION = "1.1.4";
 
     // 0. Force dark background immediately to kill white flashbang forever
     try {

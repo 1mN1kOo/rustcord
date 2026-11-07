@@ -159,7 +159,7 @@ fn main() {
 
             // Build Tray Context Menu
             let settings = updater::load_settings();
-            let ver_i = MenuItem::with_id(app, "ver", "Rustcord v1.1.3", false, None::<&str>)?;
+            let ver_i = MenuItem::with_id(app, "ver", "Rustcord v1.1.4", false, None::<&str>)?;
             let show_i = MenuItem::with_id(app, "show", "Показать Rustcord", true, None::<&str>)?;
             let reload_i = MenuItem::with_id(app, "reload", "Перезагрузить", true, None::<&str>)?;
             let update_i = MenuItem::with_id(app, "update", "Проверить обновления", true, None::<&str>)?;
@@ -194,7 +194,7 @@ fn main() {
 
                 let _tray = TrayIconBuilder::new()
                     .icon(icon.clone())
-                    .tooltip("Rustcord v1.1.3")
+                    .tooltip("Rustcord v1.1.4")
                     .menu(&menu)
                     .show_menu_on_left_click(false)
                     .on_menu_event(move |app, event| match event.id.as_ref() {
