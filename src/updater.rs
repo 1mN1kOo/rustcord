@@ -165,19 +165,16 @@ pub fn download_and_apply_update(download_url: Option<String>) -> Result<(), Str
         return Err("Download process failed".to_string());
     }
 
-    // Verify file exists and has valid payload size (> 1MB)
     let meta = fs::metadata(&installer_path)
         .map_err(|e| format!("Failed to inspect installer: {}", e))?;
     if meta.len() < 1_000_000 {
         return Err("Downloaded installer payload is too small or corrupt".to_string());
     }
 
-    // Launch silent installer and exit current Rustcord
     Command::new(&installer_path)
         .arg("--silent")
         .spawn()
         .map_err(|e| format!("Failed to launch installer: {}", e))?;
 
-    // Allow installer to take over and terminate Rustcord immediately
     std::process::exit(0);
 }

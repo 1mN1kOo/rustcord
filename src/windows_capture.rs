@@ -32,7 +32,6 @@ const THUMB_H: u32 = 180;
 pub fn get_desktop_sources() -> Vec<CaptureSource> {
     let mut sources = Vec::new();
 
-    // 1. Primary Screen: REAL desktop screenshot
     let screen_thumb = capture_screen_thumbnail(THUMB_W, THUMB_H)
         .unwrap_or_else(|| create_fallback_svg("Весь экран", "🖥️"));
 
@@ -43,7 +42,6 @@ pub fn get_desktop_sources() -> Vec<CaptureSource> {
         icon: None,
     });
 
-    // 2. Enumerate visible desktop windows
     struct WindowEnumData {
         windows: Vec<(HWND, String)>,
     }
@@ -64,7 +62,6 @@ pub fn get_desktop_sources() -> Vec<CaptureSource> {
             return BOOL(1);
         }
 
-        // Check if window is cloaked by DWM (e.g. suspended UWP apps in background)
         let mut cloaked: u32 = 0;
         let hr = DwmGetWindowAttribute(
             hwnd,
@@ -118,7 +115,6 @@ pub fn get_desktop_sources() -> Vec<CaptureSource> {
         let _ = EnumWindows(Some(enum_windows_callback), LPARAM(&mut data as *mut _ as isize));
     }
 
-    // Capture real live screenshot for each window
     for (hwnd, title) in data.windows {
         let thumb = capture_window_thumbnail(hwnd, THUMB_W, THUMB_H)
             .unwrap_or_else(|| create_fallback_svg(&title, "🗔"));
@@ -192,7 +188,6 @@ fn capture_screen_thumbnail(target_w: u32, target_h: u32) -> Option<String> {
             return None;
         }
 
-        // Check if raw_pixels is entirely black
         let is_all_black = raw_pixels.chunks_exact(4).all(|p| p[0] == 0 && p[1] == 0 && p[2] == 0);
         if is_all_black {
             return None;
@@ -233,12 +228,10 @@ fn capture_window_thumbnail(hwnd: HWND, target_w: u32, target_h: u32) -> Option<
         let hbm = CreateCompatibleBitmap(hdc_screen, target_w as i32, target_h as i32);
         let old_bm = SelectObject(hdc_mem, HGDIOBJ(hbm.0));
 
-        // Create compatible DC and bitmap matching window dimensions for PrintWindow
         let hdc_src = CreateCompatibleDC(Some(hdc_screen));
         let hbm_src = CreateCompatibleBitmap(hdc_screen, src_w, src_h);
         let old_src_bm = SelectObject(hdc_src, HGDIOBJ(hbm_src.0));
 
-        // Attempt PrintWindow with PW_RENDERFULLCONTENT, then fallback to 0
         let mut print_ok = PrintWindow(hwnd, hdc_src, PW_RENDERFULLCONTENT).as_bool();
         if !print_ok {
             print_ok = PrintWindow(hwnd, hdc_src, PW_CLIENTONLY_FLAG).as_bool();
@@ -253,7 +246,6 @@ fn capture_window_thumbnail(hwnd: HWND, target_w: u32, target_h: u32) -> Option<
                 SRCCOPY,
             );
         } else {
-            // Fallback to screen DC StretchBlt
             SetStretchBltMode(hdc_mem, STRETCH_HALFTONE);
             let _ = SetBrushOrgEx(hdc_mem, 0, 0, None);
             let _ = StretchBlt(
@@ -293,8 +285,6 @@ fn capture_window_thumbnail(hwnd: HWND, target_w: u32, target_h: u32) -> Option<
 
         let mut is_all_black = lines == 0 || raw_pixels.chunks_exact(4).all(|p| p[0] == 0 && p[1] == 0 && p[2] == 0);
 
-        // If PrintWindow produced an entirely black buffer (e.g. hardware overlay occlusion),
-        // fallback to screen DC StretchBlt
         if is_all_black && print_ok {
             SetStretchBltMode(hdc_mem, STRETCH_HALFTONE);
             let _ = SetBrushOrgEx(hdc_mem, 0, 0, None);

@@ -16,14 +16,6 @@ fn main() {
         dpi_bypass::start_dpi_proxy();
     }
 
-    // Force native desktop app flags in Microsoft Edge WebView2:
-    // 1. --use-fake-ui-for-media-stream: Auto-grants mic, camera & screen share without permission prompts!
-    // 2. --enable-usermedia-screen-capturing: Enables native-level screen sharing with audio.
-    // 3. --autoplay-policy=no-user-gesture-required: Auto-plays calls and media without requiring user clicks.
-    // 4. --disable-background-timer-throttling & --disable-renderer-backgrounding: Never throttles in background while gaming!
-    // 5. --default-background-color=0xFF1E1F22: Kills initial white flashbang.
-    // 6. Disable browser UI bloat (PDF, Translator, SmartScreen popups).
-    // 7. --proxy-server: routes traffic through built-in pure-Rust DPI bypass proxy if enabled.
     let mut browser_args = String::from(
         "--default-background-color=0xFF1E1F22 \
          --enable-gpu-rasterization \
@@ -60,7 +52,6 @@ fn main() {
         .setup(|app| {
             let app_handle = app.handle().clone();
 
-            // Create window with initialization_script (runs at document_start before any page script!)
             let script = include_str!("inject.js");
             let window = tauri::WebviewWindowBuilder::new(
                 app,
@@ -157,7 +148,6 @@ fn main() {
             })
             .build()?;
 
-            // Build Tray Context Menu
             let settings = updater::load_settings();
             let ver_i = MenuItem::with_id(app, "ver", "Rustcord v1.1.4", false, None::<&str>)?;
             let show_i = MenuItem::with_id(app, "show", "Показать Rustcord", true, None::<&str>)?;
@@ -186,7 +176,6 @@ fn main() {
                 &[&ver_i, &show_i, &reload_i, &update_i, &auto_update_i, &dpi_i, &quit_i],
             )?;
 
-            // Set window and taskbar icon explicitly
             if let Some(icon) = app.default_window_icon() {
                 let _ = window.set_icon(icon.clone());
                 let auto_update_check = auto_update_i.clone();
@@ -278,7 +267,6 @@ fn main() {
                     .build(app)?;
             }
 
-            // Smoothly reveal window after dark background initialization (ZERO white flash!)
             let w_show = window.clone();
             std::thread::spawn(move || {
                 std::thread::sleep(std::time::Duration::from_millis(300));
@@ -286,7 +274,6 @@ fn main() {
                 let _ = w_show.set_focus();
             });
 
-            // Periodically update desktop sources for the in-app screen capture modal
             let w_sources = window.clone();
             std::thread::spawn(move || {
                 std::thread::sleep(std::time::Duration::from_millis(3000));
@@ -300,7 +287,6 @@ fn main() {
                 }
             });
 
-            // Background Auto-Update Check Thread
             let w_updater = window.clone();
             std::thread::spawn(move || {
                 std::thread::sleep(std::time::Duration::from_secs(5));
@@ -321,7 +307,6 @@ fn main() {
                 }
             });
 
-            // When user closes the window, fully terminate the application and its background processes!
             window.on_window_event(move |event| {
                 if let WindowEvent::CloseRequested { .. } = event {
                     std::process::exit(0);
