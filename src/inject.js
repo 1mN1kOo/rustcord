@@ -1,5 +1,5 @@
 (function() {
-    const CURRENT_VERSION = "1.1.4";
+    const CURRENT_VERSION = "1.1.5";
 
     try {
         if (document.documentElement) {
@@ -372,7 +372,7 @@
                         if (filtered.length === 0) {
                             grid.innerHTML = `
                                 <div style="grid-column: span 2; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 220px; color: #949ba4;">
-                                    <div style="font-size: 32px; margin-bottom: 8px;">🔍</div>
+                                    <div style="margin-bottom: 8px;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#949ba4" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
                                     <div style="font-weight: 500; font-size: 14px;">Источники не найдены</div>
                                 </div>
                             `;
@@ -398,7 +398,7 @@
 
                             card.innerHTML = `
                                 <div class="rc-sc-thumb thumb">
-                                    ${thumbSrc ? `<img src="${thumbSrc}" alt="" />` : '<div class="rc-sc-placeholder">🖥️</div>'}
+                                    ${thumbSrc ? `<img src="${thumbSrc}" alt="" />` : '<div class="rc-sc-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#5865f2" stroke-width="2"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>'}
                                     ${isSelected ? '<div class="rc-sc-check-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="#ffffff"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg></div>' : ''}
                                 </div>
                                 <div class="rc-sc-info name">
@@ -635,7 +635,9 @@
             ::-webkit-scrollbar-thumb:hover {
                 background: #2f3136 !important;
             }
-            #rustcord-update-bar {
+            @keyframes rc-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .rc-spin { animation: rc-spin 0.8s linear infinite; }
+        #rustcord-update-bar {
                 position: fixed !important;
                 top: 0 !important;
                 left: 0 !important;
@@ -1164,7 +1166,7 @@
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="#5865f2"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
                         Настройки Rustcord
                     </div>
-                    <button class="rustcord-close" id="rc-modal-close" title="Закрыть">✕</button>
+                    <button class="rustcord-close" id="rc-modal-close" title="Закрыть"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                 </div>
 
                 <div class="rc-settings-row">
@@ -1217,7 +1219,7 @@
             rustcordSettings.auto_update = !rustcordSettings.auto_update;
             toggleBtn.classList.toggle("active", rustcordSettings.auto_update);
             sendToNative("set-auto-update", { enabled: rustcordSettings.auto_update });
-            showToast(rustcordSettings.auto_update ? "✓ Автообновление включено" : "⚠️ Автообновление отключено", 2000);
+            showToast(rustcordSettings.auto_update ? "Автообновление включено" : "Автообновление отключено", rustcordSettings.auto_update ? "success" : "warning", 2000);
         });
 
         checkBtn.addEventListener("click", () => {
@@ -1250,10 +1252,13 @@
         if (toggle) {
             toggle.classList.toggle("active", rustcordSettings.auto_update);
         }
-        showToast(rustcordSettings.auto_update ? "✓ Автообновление включено" : "⚠️ Автообновление отключено", 2500);
+        showToast(rustcordSettings.auto_update ? "Автообновление включено" : "Автообновление отключено", rustcordSettings.auto_update ? "success" : "warning", 2500);
     };
 
+    let currentUpdateInfo = null;
+
     window.__RUSTCORD_HANDLE_UPDATE_CHECK__ = function(info, isManual) {
+        currentUpdateInfo = info;
         const statusText = document.getElementById("rc-check-status");
         if (statusText) {
             statusText.style.display = "block";
@@ -1267,68 +1272,119 @@
         }
 
         if (info && info.has_update) {
-            const existing = document.getElementById("rustcord-update-bar");
-            if (existing) existing.remove();
-
-            const bar = document.createElement("div");
-            bar.id = "rustcord-update-bar";
-            bar.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 16px;">🚀</span>
-                    <span>Доступна новая версия <strong>Rustcord v${info.version}</strong>!</span>
-                </div>
-                <div style="display: flex; align-items: center;">
-                    <button class="rustcord-btn" id="rustcord-update-btn">Обновить сейчас</button>
-                    <button class="rustcord-btn-secondary" id="rustcord-settings-btn">⚙ Настройки</button>
-                    <button class="rustcord-close" id="rustcord-close-btn" title="Закрыть">✕</button>
-                </div>
-            `;
-            document.body.appendChild(bar);
-
-            const updateBtn = document.getElementById("rustcord-update-btn");
-            const settingsBtn = document.getElementById("rustcord-settings-btn");
-            const closeBtn = document.getElementById("rustcord-close-btn");
-
-            updateBtn.addEventListener("click", () => {
-                bar.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 16px; animation: spin 1s infinite linear;">⚡</span>
-                        <span>Загрузка и бесшовная установка <strong>Rustcord v${info.version}</strong>... Приложение перезапустится через несколько секунд.</span>
-                    </div>
-                `;
-                sendToNative("download-and-apply", { url: info.downloadUrl || "" });
-            });
-
-            settingsBtn.addEventListener("click", () => {
-                showRustcordSettingsModal();
-            });
-
-            closeBtn.addEventListener("click", () => {
-                bar.remove();
-            });
+            renderUpdateBar(info);
         } else if (isManual) {
-            showToast("✓ У вас установлена последняя версия <strong>Rustcord v" + CURRENT_VERSION + "</strong>");
+            showToast("У вас установлена последняя версия Rustcord v" + CURRENT_VERSION, "success");
+        }
+    };
+
+    function renderUpdateBar(info) {
+        const existing = document.getElementById("rustcord-update-bar");
+        if (existing) existing.remove();
+
+        const bar = document.createElement("div");
+        bar.id = "rustcord-update-bar";
+        bar.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#5865f2" style="flex:none;"><path d="M13.13 22.19L11.5 18.36C13.07 17.78 14.54 17 15.9 16.09L13.13 22.19M5.64 12.5L1.81 10.87L7.91 8.1C7 9.46 6.22 10.93 5.64 12.5M21.61 2.39C21.61 2.39 16.66 .269 11 5.93C8.81 8.12 7.5 10.53 6.65 12.64C6.37 13.34 6.56 14.16 7.11 14.7L9.3 16.89C9.84 17.44 10.66 17.63 11.36 17.35C13.47 16.5 15.88 15.19 18.07 13C23.73 7.34 21.61 2.39 21.61 2.39M14.54 9.46C13.76 8.68 13.76 7.41 14.54 6.63C15.32 5.85 16.59 5.85 17.37 6.63C18.15 7.41 18.15 8.68 17.37 9.46C16.59 10.24 15.32 10.24 14.54 9.46Z"/></svg>
+                <span>Доступна новая версия <strong>Rustcord v${info.version}</strong>!</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button class="rustcord-btn" id="rustcord-update-btn">Обновить сейчас</button>
+                <button class="rustcord-btn-secondary" id="rustcord-settings-btn" style="display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                    Настройки
+                </button>
+                <button class="rustcord-close" id="rustcord-close-btn" title="Закрыть" style="display: inline-flex; align-items: center; justify-content: center; padding: 4px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+        `;
+        document.body.appendChild(bar);
+
+        document.getElementById("rustcord-update-btn").addEventListener("click", () => {
+            startUpdateDownload();
+        });
+        document.getElementById("rustcord-settings-btn").addEventListener("click", () => {
+            showRustcordSettingsModal();
+        });
+        document.getElementById("rustcord-close-btn").addEventListener("click", () => {
+            bar.remove();
+        });
+    }
+
+    function startUpdateDownload() {
+        const bar = document.getElementById("rustcord-update-bar");
+        if (!bar) return;
+        bar.innerHTML = `
+            <div style="display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 620px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                    <span style="display: inline-flex; align-items: center; gap: 8px;">
+                        <svg class="rc-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5865f2" stroke-width="2.5" style="flex:none;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                        <span id="rc-prog-status">Подключение к серверу...</span>
+                    </span>
+                    <span id="rc-prog-meta" style="color: #949ba4; font-size: 12px;">0% · 0 МБ/с</span>
+                </div>
+                <div style="width: 100%; height: 6px; background: #232428; border-radius: 999px; overflow: hidden;">
+                    <div id="rc-prog-bar" style="width: 0%; height: 100%; background: #5865f2; border-radius: 999px; transition: width 0.15s ease;"></div>
+                </div>
+            </div>
+        `;
+        sendToNative("download-and-apply", { url: (currentUpdateInfo && currentUpdateInfo.downloadUrl) || "" });
+    }
+
+    window.__RUSTCORD_UPDATE_PROGRESS__ = function(data) {
+        const status = document.getElementById("rc-prog-status");
+        const meta = document.getElementById("rc-prog-meta");
+        const bar = document.getElementById("rc-prog-bar");
+        if (!status || !meta || !bar) return;
+
+        const curMb = (data.downloaded / (1024 * 1024)).toFixed(1);
+        const totMb = (data.total / (1024 * 1024)).toFixed(1);
+        const percent = Math.min(100, Math.max(0, data.percent || 0)).toFixed(0);
+
+        if (percent >= 100) {
+            status.innerHTML = '<span style="color:#23a55a; font-weight:600;">Загрузка завершена!</span> Запуск установщика...';
+            meta.innerText = `${percent}% · ${curMb} / ${totMb} МБ`;
+            bar.style.width = "100%";
+            bar.style.background = "#23a55a";
+        } else {
+            status.innerText = `Загрузка обновления v${(currentUpdateInfo && currentUpdateInfo.version) || ''}...`;
+            meta.innerHTML = `${percent}% · ${curMb} / ${totMb} МБ · <strong style="color: #23a55a;">${data.speed} МБ/с</strong>`;
+            bar.style.width = percent + "%";
         }
     };
 
     window.__RUSTCORD_UPDATE_ERROR__ = function(err) {
-        showToast("❌ Ошибка при установке обновления: " + err, 5000);
+        showToast("Не удалось загрузить обновление: " + err, "error", 6000);
         const bar = document.getElementById("rustcord-update-bar");
         if (bar) {
             bar.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <span>⚠️</span>
-                    <span>Не удалось обновить автоматически: ${err}</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#f0b232" style="flex:none;"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                    <span>Ошибка загрузки обновления (${err})</span>
                 </div>
-                <div>
-                    <a href="https://rustcord.mollra.xyz/RustcordSetup.exe" target="_blank" class="rustcord-btn" style="text-decoration: none; display: inline-block;">Скачать установщик</a>
-                    <button class="rustcord-close" onclick="this.closest('#rustcord-update-bar').remove()">✕</button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="rustcord-btn" id="rc-retry-btn" style="display: inline-flex; align-items: center; gap: 6px; background: #5865f2;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex:none;"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                        Повторить загрузку
+                    </button>
+                    <a href="https://rustcord.mollra.xyz/RustcordSetup.exe" target="_blank" class="rustcord-btn-secondary" style="text-decoration: none; display: inline-block;">Скачать вручную</a>
+                    <button class="rustcord-close" onclick="this.closest('#rustcord-update-bar').remove()" style="display: inline-flex; align-items: center; justify-content: center; padding: 4px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </button>
                 </div>
             `;
+            const retryBtn = document.getElementById("rc-retry-btn");
+            if (retryBtn) {
+                retryBtn.addEventListener("click", () => {
+                    startUpdateDownload();
+                });
+            }
         }
     };
 
-    setTimeout(() => {
+setTimeout(() => {
         sendToNative("get-settings");
         sendToNative("check-update");
     }, 2500);

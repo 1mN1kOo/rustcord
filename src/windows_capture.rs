@@ -33,7 +33,7 @@ pub fn get_desktop_sources() -> Vec<CaptureSource> {
     let mut sources = Vec::new();
 
     let screen_thumb = capture_screen_thumbnail(THUMB_W, THUMB_H)
-        .unwrap_or_else(|| create_fallback_svg("Весь экран", "🖥️"));
+        .unwrap_or_else(|| create_fallback_svg("Весь экран", true));
 
     sources.push(CaptureSource {
         id: "screen:0:0".to_string(),
@@ -117,7 +117,7 @@ pub fn get_desktop_sources() -> Vec<CaptureSource> {
 
     for (hwnd, title) in data.windows {
         let thumb = capture_window_thumbnail(hwnd, THUMB_W, THUMB_H)
-            .unwrap_or_else(|| create_fallback_svg(&title, "🗔"));
+            .unwrap_or_else(|| create_fallback_svg(&title, false));
 
         sources.push(CaptureSource {
             id: format!("window:{}:0", hwnd.0 as isize),
@@ -336,7 +336,7 @@ fn capture_window_thumbnail(hwnd: HWND, target_w: u32, target_h: u32) -> Option<
     }
 }
 
-fn create_fallback_svg(title: &str, emoji: &str) -> String {
+fn create_fallback_svg(title: &str, is_screen: bool) -> String {
     let escaped_title = title
         .replace('&', "&amp;")
         .replace('<', "&lt;")
@@ -351,14 +351,20 @@ fn create_fallback_svg(title: &str, emoji: &str) -> String {
         escaped_title
     };
 
+    let icon_svg = if is_screen {
+        r##"<g transform="translate(144, 46)"><rect x="0" y="0" width="32" height="22" rx="2" fill="none" stroke="#5865f2" stroke-width="2"/><path d="M12 22h8M16 22v4M10 26h12" stroke="#5865f2" stroke-width="2" stroke-linecap="round"/></g>"##
+    } else {
+        r##"<g transform="translate(144, 46)"><rect x="0" y="0" width="32" height="24" rx="3" fill="none" stroke="#5865f2" stroke-width="2"/><path d="M0 6h32M6 3h.01M10 3h.01M14 3h.01" stroke="#5865f2" stroke-width="2" stroke-linecap="round"/></g>"##
+    };
+
     let svg = format!(
         r##"<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180">
   <rect width="100%" height="100%" rx="6" fill="#1e1f22" />
   <rect x="2" y="2" width="316" height="176" rx="5" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1.5" />
-  <text x="160" y="85" font-family="'Segoe UI Emoji', sans-serif" font-size="32" text-anchor="middle">{emoji}</text>
+  {icon_svg}
   <text x="160" y="125" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#949ba4" text-anchor="middle">{display_title}</text>
 </svg>"##,
-        emoji = emoji,
+        icon_svg = icon_svg,
         display_title = display_title
     );
 

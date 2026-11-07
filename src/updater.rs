@@ -6,7 +6,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-pub const CURRENT_VERSION: &str = "1.1.4";
+pub const CURRENT_VERSION: &str = "1.1.5";
 pub const VERSION_CHECK_URL: &str = "https://rustcord.mollra.xyz/version.json";
 pub const DEFAULT_INSTALLER_URL: &str = "https://rustcord.mollra.xyz/RustcordSetup.exe";
 const CREATE_NO_WINDOW: u32 = 0x08000000;
@@ -80,6 +80,7 @@ pub struct UpdateInfo {
     pub notes: Option<String>,
     #[serde(rename = "downloadUrl")]
     pub download_url: Option<String>,
+    pub size: Option<u64>,
     #[serde(default)]
     pub has_update: bool,
 }
@@ -140,41 +141,112 @@ pub fn fetch_version_info() -> Option<UpdateInfo> {
     Some(info)
 }
 
-pub fn download_and_apply_update(download_url: Option<String>) -> Result<(), String> {
+pub fn download_and_apply_update<F>(
+    download_url: Option<String>,
+    mut on_progress: F,
+) -> Result<(), String>
+where
+    F: FnMut(u64, u64, f64),
+{
     let target_url = download_url.unwrap_or_else(|| DEFAULT_INSTALLER_URL.to_string());
     let temp_dir = std::env::var("TEMP").unwrap_or_else(|_| "C:\\Windows\\Temp".to_string());
     let installer_path = PathBuf::from(&temp_dir).join("RustcordSetup.exe");
+    let part_path = PathBuf::from(&temp_dir).join("RustcordSetup.exe.part");
 
     let _ = fs::remove_file(&installer_path);
+    let _ = fs::remove_file(&part_path);
 
-    let status = Command::new("curl.exe")
+    let mut total_size: u64 = 6_155_264;
+    if let Ok(head) = Command::new("curl.exe")
+        .creation_flags(CREATE_NO_WINDOW)
+        .args(&["-sI", "-L", "--max-time", "4", &target_url])
+        .output()
+    {
+        if let Ok(head_str) = String::from_utf8(head.stdout) {
+            for line in head_str.lines() {
+                let lower = line.to_lowercase();
+                if lower.starts_with("content-length:") {
+                    if let Some(val) = line.split(':').nth(1) {
+                        if let Ok(num) = val.trim().parse::<u64>() {
+                            if num > 100_000 {
+                                total_size = num;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    let mut child = Command::new("curl.exe")
         .creation_flags(CREATE_NO_WINDOW)
         .args(&[
             "-s",
             "-L",
             "--max-time",
-            "120",
+            "180",
             "-o",
-            installer_path.to_str().unwrap_or("RustcordSetup.exe"),
+            part_path.to_str().unwrap_or("RustcordSetup.exe.part"),
             &target_url,
         ])
-        .status()
-        .map_err(|e| format!("Failed to spawn download: {}", e))?;
+        .spawn()
+        .map_err(|e| format!("Не удалось запустить загрузку: {}", e))?;
 
-    if !status.success() {
-        return Err("Download process failed".to_string());
+    let start_time = std::time::Instant::now();
+    let mut last_bytes = 0u64;
+    let mut last_time = start_time;
+    let mut speed_mb = 0.0f64;
+
+    loop {
+        std::thread::sleep(std::time::Duration::from_millis(150));
+
+        let current_bytes = fs::metadata(&part_path).map(|m| m.len()).unwrap_or(0);
+        let now = std::time::Instant::now();
+        let dt = (now - last_time).as_secs_f64();
+        if dt >= 0.25 {
+            let db = current_bytes.saturating_sub(last_bytes);
+            speed_mb = (db as f64 / (1024.0 * 1024.0)) / dt;
+            last_bytes = current_bytes;
+            last_time = now;
+        }
+
+        let effective_total = if total_size > current_bytes {
+            total_size
+        } else {
+            current_bytes + 1024
+        };
+        on_progress(current_bytes, effective_total, speed_mb);
+
+        match child.try_wait() {
+            Ok(Some(status)) => {
+                if !status.success() {
+                    let _ = fs::remove_file(&part_path);
+                    return Err(format!("curl завершился с кодом: {:?}", status.code()));
+                }
+                break;
+            }
+            Ok(None) => {}
+            Err(e) => {
+                let _ = fs::remove_file(&part_path);
+                return Err(format!("Ошибка ожидания процесса загрузки: {}", e));
+            }
+        }
     }
 
-    let meta = fs::metadata(&installer_path)
-        .map_err(|e| format!("Failed to inspect installer: {}", e))?;
+    let meta = fs::metadata(&part_path)
+        .map_err(|e| format!("Не удалось прочитать загруженный файл: {}", e))?;
     if meta.len() < 1_000_000 {
-        return Err("Downloaded installer payload is too small or corrupt".to_string());
+        let _ = fs::remove_file(&part_path);
+        return Err("Загруженный файл поврежден или слишком мал".to_string());
     }
+
+    let _ = fs::rename(&part_path, &installer_path);
+    on_progress(meta.len(), meta.len(), 0.0);
 
     Command::new(&installer_path)
         .arg("--silent")
         .spawn()
-        .map_err(|e| format!("Failed to launch installer: {}", e))?;
+        .map_err(|e| format!("Не удалось запустить установщик: {}", e))?;
 
     std::process::exit(0);
 }
