@@ -5,30 +5,18 @@ use windows::Win32::Foundation::{HWND, LPARAM, RECT};
 use windows::Win32::Graphics::Gdi::{
     CreateCompatibleBitmap, CreateCompatibleDC, DeleteDC, DeleteObject, GetDC, GetDIBits,
     ReleaseDC, SelectObject, SetStretchBltMode, StretchBlt, BITMAPINFO, BITMAPINFOHEADER,
-    BI_RGB, DIB_RGB_COLORS, HDC, HGDIOBJ, SRCCOPY, STRETCH_HALFTONE,
+    BI_RGB, DIB_RGB_COLORS, HGDIOBJ, SRCCOPY, STRETCH_HALFTONE, SetBrushOrgEx,
 };
 use windows::Win32::UI::WindowsAndMessaging::{
     EnumWindows, GetSystemMetrics, GetWindowLongPtrW, GetWindowRect, GetWindowTextLengthW,
     GetWindowTextW, IsIconic, IsWindowVisible, GWL_EXSTYLE, SM_CXSCREEN, SM_CYSCREEN, WS_EX_TOOLWINDOW,
 };
 
-#[link(name = "user32")]
-extern "system" {
-    fn PrintWindow(hwnd: HWND, hdc_blt: HDC, n_flags: u32) -> BOOL;
-}
+use windows::Win32::Graphics::Dwm::{DwmGetWindowAttribute, DWMWA_CLOAKED};
+use windows::Win32::Storage::Xps::{PrintWindow, PRINT_WINDOW_FLAGS};
 
-#[link(name = "dwmapi")]
-extern "system" {
-    fn DwmGetWindowAttribute(
-        hwnd: HWND,
-        dw_attribute: u32,
-        pv_attribute: *mut std::ffi::c_void,
-        cb_attribute: u32,
-    ) -> i32;
-}
-
-const PW_RENDERFULLCONTENT: u32 = 2;
-const DWMWA_CLOAKED: u32 = 14;
+const PW_RENDERFULLCONTENT: PRINT_WINDOW_FLAGS = PRINT_WINDOW_FLAGS(2);
+const PW_CLIENTONLY_FLAG: PRINT_WINDOW_FLAGS = PRINT_WINDOW_FLAGS(0);
 
 #[derive(serde::Serialize, Clone, Debug)]
 pub struct CaptureSource {
@@ -84,7 +72,7 @@ pub fn get_desktop_sources() -> Vec<CaptureSource> {
             &mut cloaked as *mut _ as *mut std::ffi::c_void,
             std::mem::size_of::<u32>() as u32,
         );
-        if hr == 0 && cloaked != 0 {
+        if hr.is_ok() && cloaked != 0 {
             return BOOL(1);
         }
 
@@ -164,6 +152,7 @@ fn capture_screen_thumbnail(target_w: u32, target_h: u32) -> Option<String> {
         let old_bm = SelectObject(hdc_mem, HGDIOBJ(hbm.0));
 
         SetStretchBltMode(hdc_mem, STRETCH_HALFTONE);
+        let _ = SetBrushOrgEx(hdc_mem, 0, 0, None);
         let _ = StretchBlt(
             hdc_mem, 0, 0, target_w as i32, target_h as i32,
             Some(hdc_screen), 0, 0, screen_w, screen_h,
@@ -252,11 +241,12 @@ fn capture_window_thumbnail(hwnd: HWND, target_w: u32, target_h: u32) -> Option<
         // Attempt PrintWindow with PW_RENDERFULLCONTENT, then fallback to 0
         let mut print_ok = PrintWindow(hwnd, hdc_src, PW_RENDERFULLCONTENT).as_bool();
         if !print_ok {
-            print_ok = PrintWindow(hwnd, hdc_src, 0).as_bool();
+            print_ok = PrintWindow(hwnd, hdc_src, PW_CLIENTONLY_FLAG).as_bool();
         }
 
         if print_ok {
             SetStretchBltMode(hdc_mem, STRETCH_HALFTONE);
+            let _ = SetBrushOrgEx(hdc_mem, 0, 0, None);
             let _ = StretchBlt(
                 hdc_mem, 0, 0, target_w as i32, target_h as i32,
                 Some(hdc_src), 0, 0, src_w, src_h,
@@ -265,6 +255,7 @@ fn capture_window_thumbnail(hwnd: HWND, target_w: u32, target_h: u32) -> Option<
         } else {
             // Fallback to screen DC StretchBlt
             SetStretchBltMode(hdc_mem, STRETCH_HALFTONE);
+            let _ = SetBrushOrgEx(hdc_mem, 0, 0, None);
             let _ = StretchBlt(
                 hdc_mem, 0, 0, target_w as i32, target_h as i32,
                 Some(hdc_screen), rect.left, rect.top, src_w, src_h,
@@ -306,6 +297,7 @@ fn capture_window_thumbnail(hwnd: HWND, target_w: u32, target_h: u32) -> Option<
         // fallback to screen DC StretchBlt
         if is_all_black && print_ok {
             SetStretchBltMode(hdc_mem, STRETCH_HALFTONE);
+            let _ = SetBrushOrgEx(hdc_mem, 0, 0, None);
             let _ = StretchBlt(
                 hdc_mem, 0, 0, target_w as i32, target_h as i32,
                 Some(hdc_screen), rect.left, rect.top, src_w, src_h,
