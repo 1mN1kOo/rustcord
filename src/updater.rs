@@ -15,6 +15,12 @@ const CREATE_NO_WINDOW: u32 = 0x08000000;
 pub struct Settings {
     pub auto_update: bool,
     pub check_interval_mins: u64,
+    #[serde(default = "default_true")]
+    pub dpi_bypass: bool,
+}
+
+fn default_true() -> bool {
+    true
 }
 
 impl Default for Settings {
@@ -22,6 +28,7 @@ impl Default for Settings {
         Self {
             auto_update: true,
             check_interval_mins: 30,
+            dpi_bypass: true,
         }
     }
 }

@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod dpi_bypass;
 mod updater;
 mod windows_capture;
 
@@ -10,6 +11,11 @@ use tauri::{
 };
 
 fn main() {
+    let settings = updater::load_settings();
+    if settings.dpi_bypass {
+        dpi_bypass::start_dpi_proxy();
+    }
+
     // Force native desktop app flags in Microsoft Edge WebView2:
     // 1. --use-fake-ui-for-media-stream: Auto-grants mic, camera & screen share without permission prompts!
     // 2. --enable-usermedia-screen-capturing: Enables native-level screen sharing with audio.
@@ -17,8 +23,8 @@ fn main() {
     // 4. --disable-background-timer-throttling & --disable-renderer-backgrounding: Never throttles in background while gaming!
     // 5. --default-background-color=0xFF1E1F22: Kills initial white flashbang.
     // 6. Disable browser UI bloat (PDF, Translator, SmartScreen popups).
-    std::env::set_var(
-        "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
+    // 7. --proxy-server: routes traffic through built-in pure-Rust DPI bypass proxy if enabled.
+    let mut browser_args = String::from(
         "--default-background-color=0xFF1E1F22 \
          --enable-gpu-rasterization \
          --enable-zero-copy \
@@ -33,6 +39,15 @@ fn main() {
          --disable-backgrounding-occluded-windows \
          --disable-renderer-backgrounding",
     );
+
+    if settings.dpi_bypass {
+        browser_args.push_str(&format!(
+            " --proxy-server=socks5://127.0.0.1:{}",
+            dpi_bypass::DPI_PROXY_PORT
+        ));
+    }
+
+    std::env::set_var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", browser_args);
 
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
@@ -105,6 +120,24 @@ fn main() {
                                     }
                                 }
                             }
+                            "set-dpi-bypass" => {
+                                for (k, v) in url.query_pairs() {
+                                    if k == "enabled" {
+                                        let enabled = v == "true" || v == "1";
+                                        let mut s = updater::load_settings();
+                                        s.dpi_bypass = enabled;
+                                        updater::save_settings(&s);
+                                        if let Some(w) = nav_app.get_webview_window("main") {
+                                            let msg = if enabled {
+                                                "✓ Обход блокировок (DPI) включен. Перезапустите приложение для применения."
+                                            } else {
+                                                "⚠️ Обход блокировок (DPI) выключен. Перезапустите приложение для применения."
+                                            };
+                                            let _ = w.eval(&format!("if (window.__RUSTCORD_TOAST__) window.__RUSTCORD_TOAST__('{}');", msg));
+                                        }
+                                    }
+                                }
+                            }
                             "get-settings" => {
                                 let s = updater::load_settings();
                                 if let Some(w) = nav_app.get_webview_window("main") {
@@ -138,14 +171,26 @@ fn main() {
                 settings.auto_update,
                 None::<&str>,
             )?;
+            let dpi_i = CheckMenuItem::with_id(
+                app,
+                "dpi_bypass",
+                "Обход блокировок (DPI)",
+                true,
+                settings.dpi_bypass,
+                None::<&str>,
+            )?;
             let quit_i = MenuItem::with_id(app, "quit", "Выйти из Rustcord", true, None::<&str>)?;
 
-            let menu = Menu::with_items(app, &[&ver_i, &show_i, &reload_i, &update_i, &auto_update_i, &quit_i])?;
+            let menu = Menu::with_items(
+                app,
+                &[&ver_i, &show_i, &reload_i, &update_i, &auto_update_i, &dpi_i, &quit_i],
+            )?;
 
             // Set window and taskbar icon explicitly
             if let Some(icon) = app.default_window_icon() {
                 let _ = window.set_icon(icon.clone());
                 let auto_update_check = auto_update_i.clone();
+                let dpi_check = dpi_i.clone();
 
                 let _tray = TrayIconBuilder::new()
                     .icon(icon.clone())
@@ -186,6 +231,23 @@ fn main() {
                                 let _ = w.eval(&format!(
                                     "if (window.__RUSTCORD_SET_AUTOUPDATE__) window.__RUSTCORD_SET_AUTOUPDATE__({});",
                                     enabled
+                                ));
+                            }
+                        }
+                        "dpi_bypass" => {
+                            let mut s = updater::load_settings();
+                            s.dpi_bypass = !s.dpi_bypass;
+                            updater::save_settings(&s);
+                            let _ = dpi_check.set_checked(s.dpi_bypass);
+                            if let Some(w) = app.get_webview_window("main") {
+                                let msg = if s.dpi_bypass {
+                                    "✓ Обход блокировок (DPI) включен. Перезапустите Rustcord для применения."
+                                } else {
+                                    "⚠️ Обход блокировок (DPI) выключен. Перезапустите Rustcord для применения."
+                                };
+                                let _ = w.eval(&format!(
+                                    "if (window.__RUSTCORD_TOAST__) window.__RUSTCORD_TOAST__('{}');",
+                                    msg
                                 ));
                             }
                         }

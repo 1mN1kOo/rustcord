@@ -10,6 +10,262 @@
         }
     } catch (_) {}
 
+    // 0.1 Custom Native Rustcord Splash & Loading Animation (replacing generic web spinner)
+    function setupCustomSplash() {
+        try {
+            if (document.getElementById("rustcord-custom-splash")) return;
+
+            const style = document.createElement("style");
+            style.id = "rc-splash-styles";
+            style.textContent = `
+                #rustcord-custom-splash {
+                    position: fixed !important;
+                    inset: 0 !important;
+                    width: 100vw !important;
+                    height: 100vh !important;
+                    background: #1e1f22 !important;
+                    z-index: 2147483647 !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    font-family: "gg sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+                    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                    user-select: none !important;
+                }
+                .rc-splash-container {
+                    display: flex !important;
+                    flex-direction: column !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                }
+                .rc-splash-logo-wrapper {
+                    position: relative !important;
+                    width: 110px !important;
+                    height: 110px !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    margin-bottom: 24px !important;
+                }
+                .rc-splash-orbit {
+                    position: absolute !important;
+                    inset: -6px !important;
+                    border-radius: 50% !important;
+                    border: 2px solid transparent !important;
+                    border-top-color: #5865F2 !important;
+                    border-right-color: #EB459E !important;
+                    animation: rcOrbit 1.4s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite !important;
+                }
+                .rc-splash-pulse {
+                    position: absolute !important;
+                    inset: -12px !important;
+                    border-radius: 50% !important;
+                    background: radial-gradient(circle, rgba(88, 101, 242, 0.25) 0%, rgba(235, 69, 158, 0) 70%) !important;
+                    animation: rcPulse 2s ease-in-out infinite !important;
+                }
+                .rc-splash-logo {
+                    z-index: 2 !important;
+                    animation: rcLogoFloat 2.5s ease-in-out infinite !important;
+                    filter: drop-shadow(0 4px 16px rgba(88, 101, 242, 0.5)) !important;
+                }
+                .rc-splash-title {
+                    color: #ffffff !important;
+                    font-size: 24px !important;
+                    font-weight: 800 !important;
+                    letter-spacing: 3px !important;
+                    margin-bottom: 6px !important;
+                    background: linear-gradient(135deg, #ffffff 30%, #b5bac1 100%) !important;
+                    -webkit-background-clip: text !important;
+                    -webkit-text-fill-color: transparent !important;
+                }
+                .rc-splash-version {
+                    color: #949ba4 !important;
+                    font-size: 13px !important;
+                    font-weight: 500 !important;
+                    margin-bottom: 26px !important;
+                }
+                .rc-splash-loader {
+                    display: flex !important;
+                    align-items: center !important;
+                    gap: 8px !important;
+                    margin-bottom: 16px !important;
+                }
+                .rc-loader-dot {
+                    width: 10px !important;
+                    height: 10px !important;
+                    border-radius: 50% !important;
+                    background: #5865F2 !important;
+                    animation: rcDotBounce 1.4s ease-in-out infinite !important;
+                }
+                .rc-loader-dot:nth-child(2) {
+                    animation-delay: 0.2s !important;
+                    background: #7289DA !important;
+                }
+                .rc-loader-dot:nth-child(3) {
+                    animation-delay: 0.4s !important;
+                    background: #EB459E !important;
+                }
+                .rc-splash-status {
+                    color: #dbdee1 !important;
+                    font-size: 13.5px !important;
+                    font-weight: 500 !important;
+                    min-height: 20px !important;
+                    transition: opacity 0.2s !important;
+                }
+                @keyframes rcOrbit {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                @keyframes rcPulse {
+                    0%, 100% { transform: scale(0.95); opacity: 0.5; }
+                    50% { transform: scale(1.15); opacity: 0.9; }
+                }
+                @keyframes rcLogoFloat {
+                    0%, 100% { transform: translateY(0px); }
+                    50% { transform: translateY(-4px); }
+                }
+                @keyframes rcDotBounce {
+                    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+                    40% { transform: scale(1.15); opacity: 1; }
+                }
+            `;
+
+            const splash = document.createElement("div");
+            splash.id = "rustcord-custom-splash";
+            splash.innerHTML = `
+                <div class="rc-splash-container">
+                    <div class="rc-splash-logo-wrapper">
+                        <div class="rc-splash-orbit"></div>
+                        <div class="rc-splash-pulse"></div>
+                        <svg class="rc-splash-logo" viewBox="0 0 128 128" width="76" height="76">
+                            <defs>
+                                <linearGradient id="rcLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#5865F2" />
+                                    <stop offset="50%" stop-color="#7289DA" />
+                                    <stop offset="100%" stop-color="#EB459E" />
+                                </linearGradient>
+                            </defs>
+                            <circle cx="64" cy="64" r="56" fill="#1e1f22" stroke="url(#rcLogoGrad)" stroke-width="4"/>
+                            <path d="M88.5 39.5c-6.1-2.8-12.7-4.8-19.6-5.8-.8 1.5-1.8 3.5-2.5 5.1-7.4-1.1-14.8-1.1-22.1 0-.7-1.6-1.7-3.6-2.5-5.1-6.9 1-13.5 3-19.6 5.8-12.4 18.5-15.8 36.5-14.1 54.3 8.2 6.1 16.2 9.8 24 12.2 2-2.7 3.7-5.6 5.2-8.6-2.8-1.1-5.5-2.4-8-4 .7-.5 1.4-1 2-1.6 15.6 7.2 32.5 7.2 47.9 0 .7.5 1.4 1.1 2 1.6-2.5 1.6-5.2 2.9-8 4 1.5 3 3.3 5.9 5.2 8.6 7.9-2.4 15.9-6.1 24.1-12.2 2-20.7-3.4-38.6-14.1-54.3zm-35.3 41.2c-4.7 0-8.6-4.3-8.6-9.6s3.8-9.6 8.6-9.6c4.9 0 8.7 4.4 8.6 9.6 0 5.3-3.8 9.6-8.6 9.6zm23.6 0c-4.7 0-8.6-4.3-8.6-9.6s3.8-9.6 8.6-9.6c4.9 0 8.7 4.4 8.6 9.6 0 5.3-3.7 9.6-8.6 9.6z" fill="url(#rcLogoGrad)"/>
+                        </svg>
+                    </div>
+                    <div class="rc-splash-title">RUSTCORD</div>
+                    <div class="rc-splash-version">v${CURRENT_VERSION} · Нативное ядро на Rust</div>
+                    
+                    <div class="rc-splash-loader">
+                        <div class="rc-loader-dot"></div>
+                        <div class="rc-loader-dot"></div>
+                        <div class="rc-loader-dot"></div>
+                    </div>
+
+                    <div class="rc-splash-status" id="rc-splash-status-text">Инициализация нативного ядра...</div>
+                </div>
+            `;
+
+            const target = document.body || document.documentElement;
+            if (target) {
+                target.appendChild(style);
+                target.appendChild(splash);
+            }
+
+            const messages = [
+                "Инициализация нативного ядра Rustcord...",
+                "Подключение модулей захвата экрана...",
+                "Оптимизация сетевых потоков WebRTC...",
+                "Загрузка серверов и сообщений..."
+            ];
+            let msgIdx = 0;
+            const statusEl = document.getElementById("rc-splash-status-text");
+            const interval = setInterval(() => {
+                msgIdx = (msgIdx + 1) % messages.length;
+                if (statusEl) {
+                    statusEl.style.opacity = "0";
+                    setTimeout(() => {
+                        statusEl.innerText = messages[msgIdx];
+                        statusEl.style.opacity = "1";
+                    }, 200);
+                }
+            }, 1200);
+
+            function dismissSplash() {
+                clearInterval(interval);
+                splash.style.opacity = "0";
+                splash.style.transform = "scale(1.02)";
+                setTimeout(() => {
+                    try { splash.remove(); } catch(_) {}
+                    try { style.remove(); } catch(_) {}
+                }, 400);
+            }
+
+            const observer = new MutationObserver(() => {
+                const ready = document.querySelector('[class*="guilds"], [data-list-id="guildsnav"], [class*="channels_"], [class*="chat"]');
+                if (ready) {
+                    observer.disconnect();
+                    dismissSplash();
+                }
+            });
+            observer.observe(document.documentElement, { childList: true, subtree: true });
+
+            setTimeout(() => {
+                observer.disconnect();
+                dismissSplash();
+            }, 6000);
+        } catch (_) {}
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", setupCustomSplash);
+    } else {
+        setupCustomSplash();
+    }
+
+    // 0.2 Discord Internal Webpack Interceptor & Bridge
+    let discordWebpack = null;
+    let discordModalApi = null;
+    let discordStreamModal = null;
+
+    function hookDiscordWebpack() {
+        if (!window.webpackChunkdiscord_app) return;
+        try {
+            window.webpackChunkdiscord_app.push([
+                [Symbol("rustcord_hook")],
+                {},
+                (req) => {
+                    discordWebpack = req;
+                    console.log("[Rustcord] Successfully hooked Discord Webpack chunk repository!");
+
+                    for (const id in req.c) {
+                        const m = req.c[id]?.exports;
+                        if (!m) continue;
+
+                        if (!discordModalApi && m.openModal && m.closeModal) {
+                            discordModalApi = m;
+                        }
+
+                        if (!discordStreamModal) {
+                            if (m.StreamSourceSelectModal || m.default?.displayName === "StreamSourceSelectModal") {
+                                discordStreamModal = m.StreamSourceSelectModal || m.default;
+                            }
+                        }
+                    }
+                }
+            ]);
+        } catch (e) {
+            console.warn("[Rustcord] Webpack hook notice:", e);
+        }
+    }
+
+    hookDiscordWebpack();
+    let hookAttempts = 0;
+    const hookTimer = setInterval(() => {
+        hookAttempts++;
+        if (discordWebpack || hookAttempts > 25) {
+            clearInterval(hookTimer);
+        } else {
+            hookDiscordWebpack();
+        }
+    }, 300);
+
     console.log("%c[Rustcord v" + CURRENT_VERSION + "]%c Native Desktop Engine Activated", 
         "color: #5865F2; font-weight: bold; font-size: 14px;", "color: #23A55A; font-weight: bold;");
 
@@ -55,40 +311,35 @@
                     const overlay = document.createElement("div");
                     overlay.id = "rustcord-screenshare-overlay";
                     overlay.innerHTML = `
-                        <div class="rc-modal-container">
-                            <!-- Header Tabs -->
-                            <div class="rc-modal-tabs">
-                                <button class="rc-tab-btn active" data-tab="applications">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;"><path d="M4 3h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm0 4v12h16V7H4zm2-2h2v1H6V5zm4 0h2v1h-2V5zm4 0h2v1h-2V5z"/></svg>
+                        <div class="dlg rc-modal-dialog">
+                            <div class="tabs" role="tablist">
+                                <button class="tab on" data-t="apps">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M10 4v4"/><path d="M2 8h20"/></svg>
                                     Приложения
                                 </button>
-                                <button class="rc-tab-btn" data-tab="screens">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;"><path d="M20 3H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h6v2H8v2h8v-2h-2v-2h6a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 12H4V5h16v10z"/></svg>
+                                <button class="tab" data-t="screen">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
                                     Весь экран
                                 </button>
-                                <button class="rc-tab-btn" data-tab="devices">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+                                <button class="tab" data-t="dev">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
                                     Устройства
                                 </button>
                             </div>
 
-                            <!-- Source Cards Grid -->
-                            <div class="rc-cards-grid" id="rc-sources-list">
-                                <!-- Cards injected dynamically -->
-                            </div>
+                            <div class="grid" id="grid"></div>
 
-                            <!-- Bottom Bar -->
-                            <div class="rc-modal-footer">
-                                <div class="rc-quality-info">
-                                    <div class="rc-quality-title">Пользовательские</div>
-                                    <div class="rc-quality-desc">· 720p &nbsp; 30fps</div>
+                            <div class="foot">
+                                <div>
+                                    <div style="font-size: 16px; font-weight: 500; color: #ffffff;">Пользовательские</div>
+                                    <div class="meta">• <span id="res">720p</span> &nbsp;• <span id="fps">30fps</span></div>
                                 </div>
-                                <div class="rc-footer-actions">
-                                    <button class="rc-gear-btn" title="Настройки качества">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <button class="rc-cancel-flat" id="rc-cancel" style="background: transparent; border: none; color: #9a9aa3; font-size: 14px; font-weight: 500; cursor: pointer; padding: 10px 14px; border-radius: 8px;">Отмена</button>
+                                    <button class="go" id="go">Начать трансляцию</button>
+                                    <button class="gear" aria-label="Настройки качества" id="gear" title="Переключить качество">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
                                     </button>
-                                    <button class="rc-cancel-btn" id="rc-cancel">Отмена</button>
-                                    <button class="rc-golive-btn" id="rc-submit">Прямой эфир</button>
                                 </div>
                             </div>
                         </div>
@@ -96,31 +347,42 @@
 
                     document.body.appendChild(overlay);
 
-                    let currentTab = "applications";
+                    let currentTab = "apps";
                     let selectedSourceId = null;
+                    const resList = ["720p", "1080p", "480p"];
+                    const fpsList = ["30fps", "60fps", "15fps"];
+                    let qualityIndex = 0;
+
+                    const gearBtn = document.getElementById("gear");
+                    if (gearBtn) {
+                        gearBtn.addEventListener("click", () => {
+                            qualityIndex = (qualityIndex + 1) % resList.length;
+                            document.getElementById("res").textContent = resList[qualityIndex];
+                            document.getElementById("fps").textContent = fpsList[qualityIndex];
+                        });
+                    }
 
                     function renderCards() {
-                        const list = document.getElementById("rc-sources-list");
-                        if (!list) return;
-                        list.innerHTML = "";
+                        const grid = document.getElementById("grid");
+                        if (!grid) return;
+                        grid.innerHTML = "";
 
                         const allSources = window.__RUSTCORD_SOURCES__ || [];
                         let filtered = [];
 
-                        if (currentTab === "applications") {
+                        if (currentTab === "apps") {
                             filtered = allSources.filter(s => s.id.startsWith("window:"));
-                        } else if (currentTab === "screens") {
+                        } else if (currentTab === "screen") {
                             filtered = allSources.filter(s => s.id.startsWith("screen:"));
                         } else {
-                            // Devices tab
                             filtered = [];
                         }
 
                         if (filtered.length === 0) {
-                            list.innerHTML = `
-                                <div style="grid-column: span 2; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 260px; color: #949ba4;">
+                            grid.innerHTML = `
+                                <div style="grid-column: span 2; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 260px; color: #9a9aa3;">
                                     <div style="font-size: 32px; margin-bottom: 8px;">🔍</div>
-                                    <div style="font-weight: 600; font-size: 15px;">${currentTab === 'devices' ? 'Устройства захвата не найдены' : 'Окна не найдены'}</div>
+                                    <div style="font-weight: 500; font-size: 14px;">${currentTab === 'dev' ? 'Устройства захвата не найдены' : 'Источники не найдены'}</div>
                                 </div>
                             `;
                             return;
@@ -133,26 +395,29 @@
                         filtered.forEach(source => {
                             const isSelected = source.id === selectedSourceId;
                             const card = document.createElement("div");
-                            card.className = "rc-source-card" + (isSelected ? " selected" : "");
-                            
-                            // Determine application icon based on name
-                            let iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="#5865F2"><path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09-.01-.02-.04-.03-.07-.03-1.5.26-2.93.71-4.27 1.33-.01 0-.02.01-.03.02-2.72 4.07-3.47 8.03-3.1 11.95 0 .02.01.04.03.05 1.8 1.32 3.53 2.12 5.24 2.65.03.01.06 0 .07-.02.4-.55.76-1.13 1.07-1.74.02-.04 0-.08-.04-.09-.57-.22-1.11-.48-1.64-.78-.04-.02-.04-.08-.01-.11.11-.08.22-.17.33-.25.02-.02.05-.02.07-.01 3.44 1.57 7.15 1.57 10.55 0 .02-.01.05-.01.07.01.11.09.22.17.33.26.04.03.04.09-.01.11-.52.31-1.07.56-1.64.78-.04.01-.05.06-.04.09.32.61.68 1.19 1.07 1.74.03.01.06.02.09.01 1.72-.53 3.45-1.33 5.25-2.65.02-.01.03-.03.03-.05.44-4.53-.73-8.46-3.1-11.95-.01-.01-.02-.02-.04-.02z"/></svg>`;
+                            card.className = "card" + (isSelected ? " sel" : "");
+
+                            let iconBg = "#5865f2";
+                            let iconChar = "🎮";
                             const nameLower = source.name.toLowerCase();
-                            if (nameLower.includes("fortnite")) {
-                                iconSvg = `<div style="width: 18px; height: 18px; background: #0078F2; color: #fff; font-weight: 900; font-size: 12px; display: flex; align-items: center; justify-content: center; border-radius: 3px;">F</div>`;
-                            } else if (nameLower.includes("rustcord") || nameLower.includes("discord")) {
-                                iconSvg = `<div style="width: 18px; height: 18px; background: #5865F2; color: #fff; display: flex; align-items: center; justify-content: center; border-radius: 3px;">🎮</div>`;
-                            } else if (nameLower.includes("antigravity")) {
-                                iconSvg = `<div style="width: 18px; height: 18px; background: #EA4335; color: #fff; font-weight: 900; font-size: 11px; display: flex; align-items: center; justify-content: center; border-radius: 3px;">▲</div>`;
+                            if (nameLower.includes("folder") || nameLower.includes("проводник") || nameLower.includes("explorer")) {
+                                iconBg = "#d9a520";
+                                iconChar = "📁";
+                            } else if (nameLower.includes("code") || nameLower.includes("rust") || nameLower.includes("studio")) {
+                                iconBg = "#2f6fed";
+                                iconChar = "💻";
+                            } else if (nameLower.includes("chrome") || nameLower.includes("edge") || nameLower.includes("браузер")) {
+                                iconBg = "#ea4335";
+                                iconChar = "🌐";
                             }
 
                             card.innerHTML = `
-                                <div class="rc-thumb-wrapper">
-                                    <img src="${source.url}" class="rc-thumb-img" alt="${source.name}" />
+                                <div class="thumb">
+                                    <img src="${source.url}" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="${source.name}" />
                                 </div>
-                                <div class="rc-card-caption">
-                                    <div class="rc-card-icon">${iconSvg}</div>
-                                    <div class="rc-card-title" title="${source.name}">${source.name}</div>
+                                <div class="name">
+                                    <span class="ic" style="background: ${iconBg};">${iconChar}</span>
+                                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${source.name}">${source.name}</span>
                                 </div>
                             `;
 
@@ -161,37 +426,36 @@
                                 renderCards();
                             });
 
-                            list.appendChild(card);
+                            grid.appendChild(card);
                         });
                     }
 
                     // Tab switching
-                    overlay.querySelectorAll(".rc-tab-btn").forEach(btn => {
-                        btn.addEventListener("click", () => {
-                            overlay.querySelectorAll(".rc-tab-btn").forEach(b => b.classList.remove("active"));
-                            btn.classList.add("active");
-                            currentTab = btn.getAttribute("data-tab");
+                    overlay.querySelectorAll(".tab").forEach(tab => {
+                        tab.addEventListener("click", () => {
+                            overlay.querySelectorAll(".tab").forEach(t => t.classList.remove("on"));
+                            tab.classList.add("on");
+                            currentTab = tab.getAttribute("data-t");
                             renderCards();
                         });
                     });
 
-                    // Hook source updates
                     window.__UPDATE_RUSTCORD_SOURCES__ = () => {
                         renderCards();
                     };
-
                     renderCards();
 
-                    // Close / Cancel actions
                     const cleanup = () => {
                         window.__UPDATE_RUSTCORD_SOURCES__ = null;
                         overlay.remove();
                     };
 
-                    document.getElementById("rc-cancel").addEventListener("click", () => {
+                    const handleCancel = () => {
                         cleanup();
                         reject(new DOMException("Permission denied by user", "NotAllowedError"));
-                    });
+                    };
+
+                    document.getElementById("rc-cancel").addEventListener("click", handleCancel);
 
                     // Close on backdrop click
                     overlay.addEventListener("click", (e) => {
@@ -212,15 +476,30 @@
                     window.addEventListener("keydown", escHandler);
 
                     // Confirm and Go Live
-                    document.getElementById("rc-submit").addEventListener("click", async () => {
+                    document.getElementById("go").addEventListener("click", async () => {
+                        const goBtn = document.getElementById("go");
+                        if (!selectedSourceId) {
+                            goBtn.textContent = "Выберите источник";
+                            setTimeout(() => { goBtn.textContent = "Начать трансляцию"; }, 1500);
+                            return;
+                        }
+
                         cleanup();
                         window.removeEventListener("keydown", escHandler);
+
                         try {
+                            const resMap = { "480p": [854, 480], "720p": [1280, 720], "1080p": [1920, 1080] };
+                            const fpsMap = { "15fps": 15, "30fps": 30, "60fps": 60 };
+                            const curRes = resList[qualityIndex] || "720p";
+                            const curFps = fpsList[qualityIndex] || "30fps";
+                            const [w, h] = resMap[curRes] || [1280, 720];
+                            const frameRate = fpsMap[curFps] || 30;
+
                             const constraints = {
                                 video: {
-                                    frameRate: { ideal: 60, max: 60 },
-                                    width: { ideal: 1920, max: 3840 },
-                                    height: { ideal: 1080, max: 2160 }
+                                    frameRate: { ideal: frameRate, max: frameRate },
+                                    width: { ideal: w, max: w * 2 },
+                                    height: { ideal: h, max: h * 2 }
                                 },
                                 audio: true,
                                 systemAudio: "include"
@@ -531,209 +810,193 @@
                 to { transform: translateY(0); opacity: 1; }
             }
 
-            /* Authentic Discord In-App Screen Sharing Modal (Image 2) */
+            /* Native Screen Sharing Picker Dialog (Custom Pixel-Perfect Match) */
             #rustcord-screenshare-overlay {
                 position: fixed !important;
                 inset: 0 !important;
                 background: rgba(0, 0, 0, 0.75) !important;
-                backdrop-filter: blur(5px) !important;
+                backdrop-filter: blur(6px) !important;
                 z-index: 9999999 !important;
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
-                font-family: "gg sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+                font-family: var(--font-sans), "gg sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
                 animation: rcFadeIn 0.15s ease-out;
             }
             @keyframes rcFadeIn {
                 from { opacity: 0; }
                 to { opacity: 1; }
             }
-            .rc-modal-container {
-                width: 740px !important;
+            .dlg {
+                background: #0e0e10 !important;
+                border: 0.5px solid #2a2a2e !important;
+                border-radius: 16px !important;
+                padding: 20px !important;
+                color: #e6e6ea !important;
+                width: 680px !important;
                 max-width: 95vw !important;
-                height: 580px !important;
                 max-height: 90vh !important;
-                background: #313338 !important;
-                border-radius: 12px !important;
                 box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8) !important;
                 display: flex !important;
                 flex-direction: column !important;
-                padding: 24px !important;
                 box-sizing: border-box !important;
-                overflow: hidden !important;
-                animation: rcScaleIn 0.18s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+                animation: rcScaleIn 0.18s cubic-bezier(0.18, 0.89, 0.32, 1.28) !important;
             }
             @keyframes rcScaleIn {
                 from { transform: scale(0.96); opacity: 0; }
                 to { transform: scale(1); opacity: 1; }
             }
-            .rc-modal-tabs {
-                display: flex !important;
-                gap: 12px !important;
-                background: #1e1f22 !important;
-                padding: 4px !important;
-                border-radius: 8px !important;
-                margin-bottom: 20px !important;
-            }
-            .rc-tab-btn {
-                flex: 1 !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                background: transparent !important;
-                border: none !important;
-                color: #949ba4 !important;
-                font-size: 14px !important;
-                font-weight: 600 !important;
-                padding: 8px 16px !important;
-                border-radius: 6px !important;
-                cursor: pointer !important;
-                transition: all 0.15s ease !important;
-            }
-            .rc-tab-btn:hover {
-                color: #dbdee1 !important;
-            }
-            .rc-tab-btn.active {
-                background: #313338 !important;
-                color: #ffffff !important;
-                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
-            }
-            .rc-cards-grid {
-                flex: 1 !important;
-                display: grid !important;
-                grid-template-columns: repeat(2, 1fr) !important;
-                gap: 16px !important;
-                overflow-y: auto !important;
-                padding-right: 4px !important;
-            }
-            .rc-source-card {
-                background: #2b2d31 !important;
-                border: 2px solid transparent !important;
-                border-radius: 8px !important;
-                cursor: pointer !important;
-                overflow: hidden !important;
-                transition: all 0.15s ease !important;
-                display: flex !important;
-                flex-direction: column !important;
-            }
-            .rc-source-card:hover {
-                border-color: #4752c4 !important;
-                transform: translateY(-2px) !important;
-            }
-            .rc-source-card.selected {
-                border-color: #5865f2 !important;
-                box-shadow: 0 0 16px rgba(88, 101, 242, 0.45) !important;
-            }
-            .rc-thumb-wrapper {
-                width: 100% !important;
-                height: 155px !important;
-                background: #111214 !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                overflow: hidden !important;
-            }
-            .rc-thumb-img {
-                width: 100% !important;
-                height: 100% !important;
-                object-fit: cover !important;
-                display: block !important;
-            }
-            .rc-card-caption {
-                padding: 10px 14px !important;
-                background: #232428 !important;
-                display: flex !important;
-                align-items: center !important;
-                gap: 10px !important;
-            }
-            .rc-card-icon {
-                flex-shrink: 0 !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-            }
-            .rc-card-title {
-                color: #f2f3f5 !important;
-                font-size: 13.5px !important;
-                font-weight: 600 !important;
-                white-space: nowrap !important;
-                overflow: hidden !important;
-                text-overflow: ellipsis !important;
-            }
-            .rc-modal-footer {
+            .rc-dlg-header {
                 display: flex !important;
                 align-items: center !important;
                 justify-content: space-between !important;
-                padding-top: 18px !important;
-                margin-top: 14px !important;
-                border-top: 1px solid #3f4147 !important;
-            }
-            .rc-quality-info {
-                display: flex !important;
-                flex-direction: column !important;
-                gap: 2px !important;
-            }
-            .rc-quality-title {
-                color: #ffffff !important;
-                font-size: 14px !important;
-                font-weight: 700 !important;
-            }
-            .rc-quality-desc {
-                color: #949ba4 !important;
-                font-size: 12px !important;
-            }
-            .rc-footer-actions {
-                display: flex !important;
-                align-items: center !important;
                 gap: 12px !important;
             }
-            .rc-gear-btn {
-                background: #383a40 !important;
-                color: #b5bac1 !important;
-                border: none !important;
-                border-radius: 6px !important;
-                padding: 8px 10px !important;
-                cursor: pointer !important;
+            .tabs {
+                flex: 1 !important;
+                display: flex !important;
+                background: #050506 !important;
+                border-radius: 12px !important;
+                padding: 4px !important;
+                gap: 4px !important;
+            }
+            .tab {
+                flex: 1 !important;
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
+                gap: 8px !important;
+                padding: 12px 8px !important;
+                border-radius: 8px !important;
+                font-size: 14px !important;
+                font-weight: 500 !important;
+                color: #9a9aa3 !important;
+                cursor: pointer !important;
+                border: none !important;
+                background: transparent !important;
                 transition: color 0.15s, background 0.15s !important;
             }
-            .rc-gear-btn:hover {
-                color: #ffffff !important;
-                background: #404249 !important;
+            .tab:hover {
+                color: #e6e6ea !important;
             }
-            .rc-cancel-btn {
+            .tab.on {
+                background: #17171a !important;
+                color: #ffffff !important;
+            }
+            .rc-dlg-close {
                 background: transparent !important;
                 border: none !important;
-                color: #f2f3f5 !important;
-                font-size: 14px !important;
-                font-weight: 600 !important;
-                padding: 10px 18px !important;
+                color: #9a9aa3 !important;
+                font-size: 20px !important;
                 cursor: pointer !important;
-                border-radius: 4px !important;
-                transition: text-decoration 0.15s !important;
+                padding: 6px 10px !important;
+                border-radius: 8px !important;
+                transition: color 0.15s, background 0.15s !important;
             }
-            .rc-cancel-btn:hover {
-                text-decoration: underline !important;
+            .rc-dlg-close:hover {
+                color: #ffffff !important;
+                background: #17171a !important;
             }
-            .rc-golive-btn {
+            .grid {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 16px !important;
+                margin-top: 20px !important;
+                max-height: 380px !important;
+                overflow-y: auto !important;
+                padding-right: 4px !important;
+            }
+            .card {
+                cursor: pointer !important;
+                border-radius: 10px !important;
+                padding: 4px !important;
+                border: 1.5px solid transparent !important;
+                transition: background 0.15s, border-color 0.15s !important;
+            }
+            .card:hover {
+                background: #17171a !important;
+            }
+            .card.sel {
+                border-color: #5865f2 !important;
+                background: #17171a !important;
+            }
+            .thumb {
+                aspect-ratio: 16/9 !important;
+                background: #050506 !important;
+                border-radius: 8px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                color: #3a3a40 !important;
+                font-size: 32px !important;
+                overflow: hidden !important;
+            }
+            .name {
+                display: flex !important;
+                align-items: center !important;
+                gap: 8px !important;
+                margin-top: 8px !important;
+                font-size: 14px !important;
+                font-weight: 500 !important;
+                padding: 0 2px !important;
+                color: #e6e6ea !important;
+            }
+            .ic {
+                width: 20px !important;
+                height: 20px !important;
+                border-radius: 6px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                font-size: 12px !important;
+                color: #ffffff !important;
+                flex-shrink: 0 !important;
+            }
+            .foot {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: flex-end !important;
+                margin-top: 20px !important;
+                padding-top: 14px !important;
+                border-top: 0.5px solid #2a2a2e !important;
+            }
+            .gear {
+                width: 40px !important;
+                height: 40px !important;
+                border-radius: 8px !important;
+                background: #1c1c20 !important;
+                border: 0.5px solid #2a2a2e !important;
+                color: #e6e6ea !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                font-size: 20px !important;
+                padding: 0 !important;
+                cursor: pointer !important;
+                transition: background 0.15s, border-color 0.15s !important;
+            }
+            .gear:hover {
+                background: #2a2a30 !important;
+                border-color: #3f4147 !important;
+            }
+            .go {
                 background: #5865f2 !important;
                 color: #ffffff !important;
                 border: none !important;
-                border-radius: 4px !important;
+                border-radius: 8px !important;
+                padding: 10px 18px !important;
                 font-size: 14px !important;
-                font-weight: 600 !important;
-                padding: 10px 24px !important;
+                font-weight: 500 !important;
                 cursor: pointer !important;
-                box-shadow: 0 4px 12px rgba(88, 101, 242, 0.4) !important;
-                transition: background 0.15s, transform 0.1s !important;
+                transition: background 0.15s, opacity 0.15s !important;
             }
-            .rc-golive-btn:hover {
+            .go:hover {
                 background: #4752c4 !important;
             }
-            .rc-golive-btn:active {
-                transform: scale(0.98) !important;
+            .meta {
+                font-size: 13px !important;
+                color: #9a9aa3 !important;
+                margin-top: 2px !important;
             }
         `;
         if (document.head) {
