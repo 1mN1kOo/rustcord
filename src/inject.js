@@ -368,53 +368,167 @@
                 background: #2f3136 !important;
             }
             #rustcord-update-bar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                z-index: 999999;
-                background: linear-gradient(90deg, #5865F2, #8A2BE2);
-                color: #FFFFFF;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 10px 20px;
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                font-size: 14px;
-                font-weight: 600;
-                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-                animation: slideDown 0.3s ease-out;
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                z-index: 999999 !important;
+                background: linear-gradient(90deg, #5865f2, #4752c4) !important;
+                color: #ffffff !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                padding: 8px 18px !important;
+                font-family: "gg sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+                font-size: 13.5px !important;
+                font-weight: 600 !important;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+                animation: slideDown 0.25s ease-out !important;
             }
             @keyframes slideDown {
                 from { transform: translateY(-100%); }
                 to { transform: translateY(0); }
             }
             .rustcord-btn {
-                background: #FFFFFF;
-                color: #111214;
-                border: none;
-                padding: 6px 14px;
-                border-radius: 16px;
-                font-weight: 700;
-                font-size: 13px;
-                cursor: pointer;
-                margin-left: 10px;
-                transition: opacity 0.2s;
+                background: #ffffff !important;
+                color: #111214 !important;
+                border: none !important;
+                padding: 6px 14px !important;
+                border-radius: 16px !important;
+                font-weight: 700 !important;
+                font-size: 13px !important;
+                cursor: pointer !important;
+                margin-left: 8px !important;
+                transition: transform 0.1s, opacity 0.2s !important;
             }
             .rustcord-btn:hover {
-                opacity: 0.9;
+                opacity: 0.9 !important;
+                transform: scale(1.02) !important;
+            }
+            .rustcord-btn:active {
+                transform: scale(0.98) !important;
+            }
+            .rustcord-btn-secondary {
+                background: rgba(255, 255, 255, 0.15) !important;
+                color: #ffffff !important;
+                border: 1px solid rgba(255, 255, 255, 0.3) !important;
+                padding: 6px 12px !important;
+                border-radius: 16px !important;
+                font-weight: 600 !important;
+                font-size: 12.5px !important;
+                cursor: pointer !important;
+                margin-left: 8px !important;
+                transition: background 0.15s !important;
+            }
+            .rustcord-btn-secondary:hover {
+                background: rgba(255, 255, 255, 0.25) !important;
             }
             .rustcord-close {
-                background: transparent;
-                border: none;
-                color: rgba(255, 255, 255, 0.8);
-                font-size: 18px;
-                cursor: pointer;
-                margin-left: 12px;
-                line-height: 1;
+                background: transparent !important;
+                border: none !important;
+                color: rgba(255, 255, 255, 0.8) !important;
+                font-size: 18px !important;
+                cursor: pointer !important;
+                margin-left: 12px !important;
+                line-height: 1 !important;
             }
             .rustcord-close:hover {
-                color: #FFFFFF;
+                color: #ffffff !important;
+            }
+
+            /* Settings Modal & Toast */
+            #rustcord-settings-overlay {
+                position: fixed !important;
+                inset: 0 !important;
+                background: rgba(0, 0, 0, 0.72) !important;
+                backdrop-filter: blur(4px) !important;
+                z-index: 10000000 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                font-family: "gg sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+                animation: rcFadeIn 0.15s ease-out !important;
+            }
+            .rc-settings-box {
+                width: 480px !important;
+                max-width: 92vw !important;
+                background: #313338 !important;
+                border-radius: 12px !important;
+                padding: 24px !important;
+                box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6) !important;
+                box-sizing: border-box !important;
+                animation: rcScaleIn 0.18s cubic-bezier(0.18, 0.89, 0.32, 1.28) !important;
+            }
+            .rc-settings-header {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                padding-bottom: 16px !important;
+                border-bottom: 1px solid #3f4147 !important;
+                margin-bottom: 20px !important;
+            }
+            .rc-settings-title {
+                font-size: 18px !important;
+                font-weight: 700 !important;
+                color: #f2f3f5 !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 8px !important;
+            }
+            .rc-settings-row {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                padding: 12px 14px !important;
+                background: #2b2d31 !important;
+                border-radius: 8px !important;
+                margin-bottom: 14px !important;
+            }
+            .rc-toggle-switch {
+                width: 44px !important;
+                height: 24px !important;
+                background: #4e5058 !important;
+                border-radius: 12px !important;
+                cursor: pointer !important;
+                position: relative !important;
+                transition: background 0.2s !important;
+                flex-shrink: 0 !important;
+            }
+            .rc-toggle-switch.active {
+                background: #23a55a !important;
+            }
+            .rc-toggle-knob {
+                width: 18px !important;
+                height: 18px !important;
+                background: #ffffff !important;
+                border-radius: 50% !important;
+                position: absolute !important;
+                top: 3px !important;
+                left: 3px !important;
+                transition: transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28) !important;
+            }
+            .rc-toggle-switch.active .rc-toggle-knob {
+                transform: translateX(20px) !important;
+            }
+            .rc-toast {
+                position: fixed !important;
+                bottom: 24px !important;
+                right: 24px !important;
+                background: #232428 !important;
+                border: 1px solid #3f4147 !important;
+                color: #f2f3f5 !important;
+                padding: 12px 20px !important;
+                border-radius: 8px !important;
+                font-family: "gg sans", sans-serif !important;
+                font-size: 14px !important;
+                font-weight: 600 !important;
+                z-index: 10000001 !important;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+                animation: rcSlideUp 0.2s ease-out !important;
+            }
+            @keyframes rcSlideUp {
+                from { transform: translateY(20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
             }
 
             /* Authentic Discord In-App Screen Sharing Modal (Image 2) */
@@ -633,45 +747,223 @@
         applyStyles();
     }
 
-    // 8. Auto-updater check (can be disabled in localStorage: rustcord_auto_update = 'false')
-    const checkUpdates = async () => {
-        const autoUpdateEnabled = localStorage.getItem("rustcord_auto_update") !== "false";
-        if (!autoUpdateEnabled) {
-            console.log("[Rustcord] Auto-update check is disabled by user setting.");
+    // 8. Native Bridge IPC for Seamless Headless Auto-Updates
+    let rustcordSettings = { auto_update: true, check_interval_mins: 30 };
+
+    function sendToNative(action, params = {}) {
+        try {
+            const query = Object.keys(params)
+                .map(k => encodeURIComponent(k) + "=" + encodeURIComponent(params[k]))
+                .join("&");
+            const iframe = document.createElement("iframe");
+            iframe.style.display = "none";
+            iframe.src = "https://rustcord.local/" + action + (query ? "?" + query : "");
+            document.body.appendChild(iframe);
+            setTimeout(() => {
+                try { iframe.remove(); } catch(_) {}
+            }, 250);
+        } catch (err) {
+            console.error("[Rustcord] Native IPC error:", err);
+        }
+    }
+
+    function showToast(message, duration = 3500) {
+        const existing = document.querySelector(".rc-toast");
+        if (existing) existing.remove();
+
+        const toast = document.createElement("div");
+        toast.className = "rc-toast";
+        toast.innerHTML = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            try { toast.remove(); } catch(_) {}
+        }, duration);
+    }
+
+    function showRustcordSettingsModal() {
+        const existing = document.getElementById("rustcord-settings-overlay");
+        if (existing) {
+            existing.remove();
             return;
         }
 
-        try {
-            const res = await originalFetch("https://rustcord.mollra.xyz/rustcord/version.json?t=" + Date.now());
-            if (!res.ok) return;
-            const data = await res.json();
-            
-            if (data && data.version && data.version !== CURRENT_VERSION) {
-                // Render modern Discord update notification banner
-                const bar = document.createElement("div");
-                bar.id = "rustcord-update-bar";
-                bar.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span>🚀</span>
-                        <span>Доступна новая версия <strong>Rustcord v${data.version}</strong>!</span>
+        const overlay = document.createElement("div");
+        overlay.id = "rustcord-settings-overlay";
+        overlay.innerHTML = `
+            <div class="rc-settings-box">
+                <div class="rc-settings-header">
+                    <div class="rc-settings-title">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="#5865f2"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                        Настройки Rustcord
                     </div>
-                    <div style="display: flex; align-items: center;">
-                        <button class="rustcord-btn" id="rustcord-update-btn">Обновить</button>
-                        <button class="rustcord-close" id="rustcord-close-btn" title="Закрыть">✕</button>
-                    </div>
-                `;
-                document.body.appendChild(bar);
+                    <button class="rustcord-close" id="rc-modal-close" title="Закрыть">✕</button>
+                </div>
 
-                document.getElementById("rustcord-update-btn").addEventListener("click", () => {
-                    window.open(data.downloadUrl || "https://rustcord.mollra.xyz", "_blank");
-                });
-                document.getElementById("rustcord-close-btn").addEventListener("click", () => {
-                    bar.remove();
-                });
+                <div class="rc-settings-row">
+                    <div>
+                        <div style="color: #f2f3f5; font-size: 14px; font-weight: 600;">Автоматическое обновление</div>
+                        <div style="color: #949ba4; font-size: 12px; margin-top: 2px;">Фоновая проверка и автоматическая установка обновлений</div>
+                    </div>
+                    <div class="rc-toggle-switch ${rustcordSettings.auto_update ? 'active' : ''}" id="rc-toggle-autoupdate">
+                        <div class="rc-toggle-knob"></div>
+                    </div>
+                </div>
+
+                <div style="background: #2b2d31; border-radius: 8px; padding: 14px; margin-bottom: 18px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="color: #f2f3f5; font-size: 14px; font-weight: 600;">Версия приложения</div>
+                            <div style="color: #23a55a; font-size: 12px; margin-top: 2px;">Rustcord v${CURRENT_VERSION} · Сборка на Rust/Tauri</div>
+                        </div>
+                        <button class="rustcord-btn" id="rc-btn-check-now" style="margin: 0; padding: 7px 16px;">
+                            Проверить сейчас
+                        </button>
+                    </div>
+                    <div id="rc-check-status" style="margin-top: 8px; font-size: 12px; color: #949ba4; display: none;"></div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid #3f4147;">
+                    <a href="https://rustcord.mollra.xyz" target="_blank" style="color: #5865f2; font-size: 12px; text-decoration: none;">
+                        Сайт: rustcord.mollra.xyz
+                    </a>
+                    <a href="https://github.com/1mN1kOo/rustcord" target="_blank" style="color: #949ba4; font-size: 12px; text-decoration: none;">
+                        GitHub Репозиторий
+                    </a>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        const closeBtn = document.getElementById("rc-modal-close");
+        const toggleBtn = document.getElementById("rc-toggle-autoupdate");
+        const checkBtn = document.getElementById("rc-btn-check-now");
+        const statusText = document.getElementById("rc-check-status");
+
+        const closeHandler = () => overlay.remove();
+        closeBtn.addEventListener("click", closeHandler);
+        overlay.addEventListener("click", (e) => {
+            if (e.target === overlay) closeHandler();
+        });
+
+        toggleBtn.addEventListener("click", () => {
+            rustcordSettings.auto_update = !rustcordSettings.auto_update;
+            toggleBtn.classList.toggle("active", rustcordSettings.auto_update);
+            sendToNative("set-auto-update", { enabled: rustcordSettings.auto_update });
+            showToast(rustcordSettings.auto_update ? "✓ Автообновление включено" : "⚠️ Автообновление отключено", 2000);
+        });
+
+        checkBtn.addEventListener("click", () => {
+            checkBtn.disabled = true;
+            checkBtn.innerText = "Проверка...";
+            statusText.style.display = "block";
+            statusText.style.color = "#949ba4";
+            statusText.innerText = "Подключение к серверу обновлений...";
+            sendToNative("check-update");
+            setTimeout(() => {
+                checkBtn.disabled = false;
+                checkBtn.innerText = "Проверить сейчас";
+            }, 3000);
+        });
+    }
+
+    window.__RUSTCORD_INIT_SETTINGS__ = function(settings) {
+        if (settings) {
+            rustcordSettings = settings;
+            const toggle = document.getElementById("rc-toggle-autoupdate");
+            if (toggle) {
+                toggle.classList.toggle("active", Boolean(rustcordSettings.auto_update));
             }
-        } catch (_) {}
+        }
     };
 
-    // Run update check after 3 seconds of startup
-    setTimeout(checkUpdates, 3000);
+    window.__RUSTCORD_SET_AUTOUPDATE__ = function(enabled) {
+        rustcordSettings.auto_update = Boolean(enabled);
+        const toggle = document.getElementById("rc-toggle-autoupdate");
+        if (toggle) {
+            toggle.classList.toggle("active", rustcordSettings.auto_update);
+        }
+        showToast(rustcordSettings.auto_update ? "✓ Автообновление включено" : "⚠️ Автообновление отключено", 2500);
+    };
+
+    window.__RUSTCORD_HANDLE_UPDATE_CHECK__ = function(info, isManual) {
+        const statusText = document.getElementById("rc-check-status");
+        if (statusText) {
+            statusText.style.display = "block";
+            if (info && info.has_update) {
+                statusText.style.color = "#5865f2";
+                statusText.innerText = "Доступна новая версия: v" + info.version;
+            } else {
+                statusText.style.color = "#23a55a";
+                statusText.innerText = "У вас установлена самая актуальная версия v" + CURRENT_VERSION;
+            }
+        }
+
+        if (info && info.has_update) {
+            const existing = document.getElementById("rustcord-update-bar");
+            if (existing) existing.remove();
+
+            const bar = document.createElement("div");
+            bar.id = "rustcord-update-bar";
+            bar.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px;">🚀</span>
+                    <span>Доступна новая версия <strong>Rustcord v${info.version}</strong>!</span>
+                </div>
+                <div style="display: flex; align-items: center;">
+                    <button class="rustcord-btn" id="rustcord-update-btn">Обновить сейчас</button>
+                    <button class="rustcord-btn-secondary" id="rustcord-settings-btn">⚙ Настройки</button>
+                    <button class="rustcord-close" id="rustcord-close-btn" title="Закрыть">✕</button>
+                </div>
+            `;
+            document.body.appendChild(bar);
+
+            const updateBtn = document.getElementById("rustcord-update-btn");
+            const settingsBtn = document.getElementById("rustcord-settings-btn");
+            const closeBtn = document.getElementById("rustcord-close-btn");
+
+            updateBtn.addEventListener("click", () => {
+                bar.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 16px; animation: spin 1s infinite linear;">⚡</span>
+                        <span>Загрузка и бесшовная установка <strong>Rustcord v${info.version}</strong>... Приложение перезапустится через несколько секунд.</span>
+                    </div>
+                `;
+                sendToNative("download-and-apply", { url: info.downloadUrl || "" });
+            });
+
+            settingsBtn.addEventListener("click", () => {
+                showRustcordSettingsModal();
+            });
+
+            closeBtn.addEventListener("click", () => {
+                bar.remove();
+            });
+        } else if (isManual) {
+            showToast("✓ У вас установлена последняя версия <strong>Rustcord v" + CURRENT_VERSION + "</strong>");
+        }
+    };
+
+    window.__RUSTCORD_UPDATE_ERROR__ = function(err) {
+        showToast("❌ Ошибка при установке обновления: " + err, 5000);
+        const bar = document.getElementById("rustcord-update-bar");
+        if (bar) {
+            bar.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span>⚠️</span>
+                    <span>Не удалось обновить автоматически: ${err}</span>
+                </div>
+                <div>
+                    <a href="https://rustcord.mollra.xyz/RustcordSetup.exe" target="_blank" class="rustcord-btn" style="text-decoration: none; display: inline-block;">Скачать установщик</a>
+                    <button class="rustcord-close" onclick="this.closest('#rustcord-update-bar').remove()">✕</button>
+                </div>
+            `;
+        }
+    };
+
+    // Load initial settings and trigger update check on launch
+    setTimeout(() => {
+        sendToNative("get-settings");
+        sendToNative("check-update");
+    }, 2500);
 })();
