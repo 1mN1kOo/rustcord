@@ -315,58 +315,58 @@
                         :host {
                             position: fixed !important;
                             inset: 0 !important;
-                            background: var(--modal-backdrop-background, rgba(0, 0, 0, 0.8)) !important;
-                            backdrop-filter: blur(4px) !important;
+                            background: rgba(0, 0, 0, 0.7) !important;
+                            backdrop-filter: blur(2px) !important;
                             z-index: 10000000 !important;
                             display: flex !important;
                             align-items: center !important;
                             justify-content: center !important;
                             font-family: "gg sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
-                            animation: rcBackdropFade 0.18s ease-out forwards !important;
+                            animation: rcFadeIn 0.15s ease-out forwards !important;
                             user-select: none !important;
                         }
-                        @keyframes rcBackdropFade {
+                        @keyframes rcFadeIn {
                             from { opacity: 0; }
                             to { opacity: 1; }
                         }
-                        .rc-sc-modal, .rc-modal-dialog, .dlg {
-                            width: 600px !important;
+                        .rc-modal {
+                            width: 580px !important;
                             max-width: 95vw !important;
-                            background: var(--modal-background, var(--background-floating, var(--background-primary, #313338))) !important;
+                            background: #313338 !important;
                             border-radius: 8px !important;
                             padding: 24px !important;
                             box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6) !important;
                             display: flex !important;
                             flex-direction: column !important;
-                            animation: rcModalZoomIn 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards !important;
+                            animation: rcZoomIn 0.15s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards !important;
                         }
-                        @keyframes rcModalZoomIn {
-                            from { transform: scale(0.95); opacity: 0; }
+                        @keyframes rcZoomIn {
+                            from { transform: scale(0.96); opacity: 0; }
                             to { transform: scale(1); opacity: 1; }
                         }
-                        .rc-sc-header {
+                        .rc-header {
                             display: flex !important;
                             align-items: flex-start !important;
                             justify-content: space-between !important;
                             margin-bottom: 20px !important;
                         }
-                        .rc-sc-title {
+                        .rc-title {
                             font-size: 20px !important;
                             font-weight: 700 !important;
-                            color: var(--header-primary, var(--text-normal, #f2f3f5)) !important;
-                            margin: 0 0 4px 0 !important;
+                            color: #f2f3f5 !important;
+                            margin-bottom: 4px !important;
                             line-height: 24px !important;
                         }
-                        .rc-sc-subtitle {
+                        .rc-subtitle {
                             font-size: 14px !important;
                             font-weight: 400 !important;
-                            color: var(--header-secondary, var(--text-muted, #949ba4)) !important;
+                            color: #949ba4 !important;
                             line-height: 18px !important;
                         }
-                        .rc-sc-close-btn, .rc-dlg-close {
+                        .rc-close-btn {
                             background: transparent !important;
                             border: none !important;
-                            color: var(--interactive-normal, #b5bac1) !important;
+                            color: #b5bac1 !important;
                             cursor: pointer !important;
                             padding: 4px !important;
                             border-radius: 4px !important;
@@ -375,356 +375,364 @@
                             justify-content: center !important;
                             transition: color 0.15s ease !important;
                         }
-                        .rc-sc-close-btn:hover, .rc-dlg-close:hover {
-                            color: var(--interactive-hover, #ffffff) !important;
+                        .rc-close-btn:hover {
+                            color: #ffffff !important;
                         }
-                        .rc-sc-tabs, .tabs {
+                        .rc-tabs {
                             display: flex !important;
-                            background: var(--background-tertiary, var(--background-secondary-alt, #1e1f22)) !important;
+                            background: #1e1f22 !important;
                             border-radius: 8px !important;
-                            padding: 2px !important;
+                            padding: 4px !important;
                             gap: 4px !important;
-                            margin-bottom: 16px !important;
+                            margin-bottom: 18px !important;
                         }
-                        .rc-sc-tab, .tab {
+                        .rc-tab {
                             flex: 1 !important;
                             padding: 8px 16px !important;
                             border: none !important;
                             border-radius: 6px !important;
                             background: transparent !important;
-                            color: var(--interactive-normal, #949ba4) !important;
+                            color: #949ba4 !important;
                             font-size: 14px !important;
                             font-weight: 500 !important;
                             cursor: pointer !important;
                             transition: background-color 0.15s, color 0.15s !important;
                         }
-                        .rc-sc-tab:hover, .tab:hover {
-                            color: var(--interactive-hover, #dbdee1) !important;
-                            background-color: var(--background-modifier-hover, rgba(255, 255, 255, 0.04)) !important;
+                        .rc-tab:hover {
+                            color: #dbdee1 !important;
+                            background-color: rgba(255, 255, 255, 0.04) !important;
                         }
-                        .rc-sc-tab.active, .rc-sc-tab.on, .tab.active, .tab.on {
-                            background-color: var(--background-modifier-selected, #35373c) !important;
-                            color: var(--interactive-active, #ffffff) !important;
+                        .rc-tab.active {
+                            background-color: #35373c !important;
+                            color: #ffffff !important;
                             font-weight: 600 !important;
                         }
-                        .rc-sc-grid, .grid {
+                        .rc-grid {
                             display: grid !important;
                             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
                             gap: 16px !important;
-                            max-height: 310px !important;
+                            max-height: 320px !important;
                             overflow-y: auto !important;
-                            padding: 4px !important;
-                            margin-bottom: 20px !important;
+                            padding: 2px !important;
+                            margin-bottom: 22px !important;
                         }
-                        .rc-sc-card, .card {
-                            background-color: var(--background-secondary, #2b2d31) !important;
-                            border-radius: 8px !important;
-                            padding: 8px !important;
+                        .rc-grid::-webkit-scrollbar {
+                            width: 6px !important;
+                        }
+                        .rc-grid::-webkit-scrollbar-thumb {
+                            background: #1a1b1e !important;
+                            border-radius: 3px !important;
+                        }
+                        .rc-card {
+                            display: flex !important;
+                            flex-direction: column !important;
                             cursor: pointer !important;
-                            border: 2px solid transparent !important;
-                            transition: border-color 0.15s ease, background-color 0.15s ease !important;
-                            box-sizing: border-box !important;
+                            user-select: none !important;
                         }
-                        .rc-sc-card:hover, .card:hover {
-                            background-color: var(--background-modifier-hover, #35373c) !important;
-                            border-color: var(--background-modifier-active, #404249) !important;
-                        }
-                        .rc-sc-card.selected, .rc-sc-card.sel, .card.selected, .card.sel {
-                            border-color: var(--brand-experiment, var(--brand-500, #5865f2)) !important;
-                            background-color: var(--background-modifier-selected, #35373c) !important;
-                        }
-                        .rc-sc-thumb, .thumb {
+                        .rc-preview {
                             position: relative !important;
                             aspect-ratio: 16 / 9 !important;
                             width: 100% !important;
-                            border-radius: 4px !important;
+                            border-radius: 8px !important;
                             overflow: hidden !important;
-                            background-color: var(--background-tertiary, #1e1f22) !important;
+                            display: flex !important;
+                            flex-direction: column !important;
+                            align-items: center !important;
+                            justify-content: center !important;
+                            border: 2px solid transparent !important;
+                            transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+                        }
+                        .rc-card:hover .rc-preview {
+                            border-color: #4e5058 !important;
+                        }
+                        .rc-card.selected .rc-preview {
+                            border-color: #5865f2 !important;
+                            box-shadow: 0 0 0 2px #5865f2 !important;
+                        }
+                        .rc-preview-badge {
+                            width: 48px !important;
+                            height: 48px !important;
+                            border-radius: 50% !important;
+                            background: rgba(0, 0, 0, 0.32) !important;
                             display: flex !important;
                             align-items: center !important;
                             justify-content: center !important;
+                            margin-bottom: 8px !important;
+                            backdrop-filter: blur(2px) !important;
                         }
-                        .rc-sc-thumb img, .thumb img {
+                        .rc-preview-title {
+                            color: #ffffff !important;
+                            font-size: 13px !important;
+                            font-weight: 600 !important;
+                            text-align: center !important;
+                            max-width: 85% !important;
+                            overflow: hidden !important;
+                            text-overflow: ellipsis !important;
+                            white-space: nowrap !important;
+                            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) !important;
+                        }
+                        .rc-preview-img {
                             width: 100% !important;
                             height: 100% !important;
                             object-fit: cover !important;
                             display: block !important;
-                            border-radius: 4px !important;
                         }
-                        .rc-sc-check-badge {
-                            position: absolute !important;
-                            top: 8px !important;
-                            right: 8px !important;
-                            width: 24px !important;
-                            height: 24px !important;
-                            border-radius: 50% !important;
-                            background-color: var(--brand-experiment, var(--brand-500, #5865f2)) !important;
-                            display: flex !important;
-                            align-items: center !important;
-                            justify-content: center !important;
-                            box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important;
-                            z-index: 10 !important;
-                        }
-                        .rc-sc-info, .name {
+                        .rc-info {
                             display: flex !important;
                             align-items: center !important;
                             gap: 8px !important;
                             margin-top: 8px !important;
+                            padding: 0 2px !important;
                         }
-                        .rc-sc-icon, .ic {
-                            width: 20px !important;
-                            height: 20px !important;
-                            border-radius: 4px !important;
+                        .rc-icon {
+                            width: 18px !important;
+                            height: 18px !important;
+                            flex-shrink: 0 !important;
                             display: flex !important;
                             align-items: center !important;
                             justify-content: center !important;
-                            font-size: 12px !important;
-                            color: var(--white-500, #ffffff) !important;
-                            flex-shrink: 0 !important;
                         }
-                        .rc-sc-name {
-                            font-size: 13.5px !important;
+                        .rc-name {
+                            font-size: 13px !important;
                             font-weight: 500 !important;
-                            color: var(--text-normal, #dbdee1) !important;
+                            color: #dbdee1 !important;
                             white-space: nowrap !important;
                             overflow: hidden !important;
                             text-overflow: ellipsis !important;
                             flex: 1 !important;
                         }
-                        .rc-sc-quality-section {
-                            background-color: var(--background-secondary, #2b2d31) !important;
-                            border-radius: 8px !important;
-                            padding: 12px 16px !important;
-                            margin-bottom: 24px !important;
+                        .rc-card.selected .rc-name {
+                            color: #ffffff !important;
+                            font-weight: 600 !important;
                         }
-                        .rc-sc-section-label {
+                        .rc-quality-title {
                             font-size: 12px !important;
                             font-weight: 700 !important;
                             text-transform: uppercase !important;
-                            color: var(--header-secondary, var(--text-muted, #b5bac1)) !important;
+                            color: #949ba4 !important;
                             letter-spacing: 0.5px !important;
                             margin-bottom: 8px !important;
                         }
-                        .rc-sc-quality-controls {
+                        .rc-quality-row {
                             display: flex !important;
                             align-items: center !important;
-                            gap: 16px !important;
+                            gap: 12px !important;
+                            margin-bottom: 24px !important;
                         }
-                        .rc-sc-segment-group {
-                            display: flex !important;
-                            background-color: var(--background-tertiary, #1e1f22) !important;
-                            border-radius: 6px !important;
-                            padding: 2px !important;
-                            gap: 2px !important;
+                        .rc-segment-group {
+                            display: inline-flex !important;
+                            background: #1e1f22 !important;
+                            border-radius: 8px !important;
+                            padding: 4px !important;
+                            gap: 4px !important;
                         }
-                        .rc-sc-segment-btn {
+                        .rc-segment-btn {
                             border: none !important;
                             background: transparent !important;
-                            color: var(--interactive-normal, #b5bac1) !important;
+                            color: #949ba4 !important;
                             font-size: 13px !important;
                             font-weight: 500 !important;
-                            padding: 6px 14px !important;
-                            border-radius: 4px !important;
+                            padding: 6px 16px !important;
+                            border-radius: 6px !important;
                             cursor: pointer !important;
                             transition: background-color 0.15s, color 0.15s !important;
                         }
-                        .rc-sc-segment-btn:hover {
-                            color: var(--interactive-hover, #ffffff) !important;
+                        .rc-segment-btn:hover {
+                            color: #dbdee1 !important;
+                            background-color: rgba(255, 255, 255, 0.04) !important;
                         }
-                        .rc-sc-segment-btn.active {
-                            background-color: var(--background-modifier-selected, #35373c) !important;
-                            color: var(--interactive-active, #ffffff) !important;
-                            font-weight: 600 !important;
+                        .rc-segment-btn.active {
+                            background-color: #35373c !important;
+                            color: #ffffff !important;
+                            font-weight: 700 !important;
                         }
-                        .rc-sc-footer, .foot {
+                        .rc-footer {
                             display: flex !important;
                             justify-content: flex-end !important;
                             align-items: center !important;
                             gap: 16px !important;
                         }
-                        .rc-sc-btn-cancel, .rc-cancel-flat {
+                        .rc-btn-cancel {
                             background: transparent !important;
                             border: none !important;
-                            color: var(--interactive-normal, #ffffff) !important;
+                            color: #ffffff !important;
                             font-size: 14px !important;
                             font-weight: 500 !important;
                             padding: 10px 16px !important;
                             cursor: pointer !important;
-                            text-decoration: underline-offset: 4px !important;
-                            transition: opacity 0.15s !important;
+                            transition: color 0.15s !important;
                         }
-                        .rc-sc-btn-cancel:hover, .rc-cancel-flat:hover {
+                        .rc-btn-cancel:hover {
                             text-decoration: underline !important;
-                            opacity: 0.8 !important;
+                            color: #dbdee1 !important;
                         }
-                        .rc-sc-btn-submit, .go {
-                            background-color: var(--brand-experiment, var(--brand-500, #5865f2)) !important;
-                            color: var(--white-500, #ffffff) !important;
+                        .rc-btn-submit {
+                            background-color: #5865f2 !important;
+                            color: #ffffff !important;
                             border: none !important;
                             border-radius: 4px !important;
                             font-size: 14px !important;
-                            font-weight: 500 !important;
-                            padding: 10px 24px !important;
+                            font-weight: 600 !important;
+                            padding: 10px 28px !important;
                             cursor: pointer !important;
-                            transition: background-color 0.17s ease !important;
+                            transition: background-color 0.15s ease !important;
                         }
-                        .rc-sc-btn-submit:hover, .go:hover {
-                            background-color: var(--brand-560, #4752c4) !important;
+                        .rc-btn-submit:hover {
+                            background-color: #4752c4 !important;
                         }
-                        .rc-sc-btn-submit:active, .go:active {
-                            background-color: var(--brand-600, #3c45a5) !important;
+                        .rc-btn-submit:active {
+                            background-color: #3c45a5 !important;
                         }
                     `;
                     shadowRoot.appendChild(shadowStyle);
 
-                    const userThemeEl = document.getElementById("user-theme");
-                    if (userThemeEl && userThemeEl.textContent) {
-                        const shadowUserTheme = document.createElement("style");
-                        shadowUserTheme.id = "user-theme-shadow";
-                        shadowUserTheme.textContent = userThemeEl.textContent;
-                        shadowRoot.appendChild(shadowUserTheme);
-                    }
-
-                    const modalContainer = document.createElement("div");
-                    modalContainer.className = "rc-sc-modal dlg rc-modal-dialog";
-                    modalContainer.innerHTML = `
-                        <!-- Header -->
-                        <div class="rc-sc-header">
+                    const modal = document.createElement("div");
+                    modal.className = "rc-modal";
+                    modal.innerHTML = `
+                        <div class="rc-header">
                             <div>
-                                <h2 class="rc-sc-title">Демонстрация экрана</h2>
-                                <div class="rc-sc-subtitle">Выберите приложение или экран</div>
+                                <h2 class="rc-title">Демонстрация экрана</h2>
+                                <div class="rc-subtitle">Выберите приложение или экран</div>
                             </div>
-                            <button class="rc-sc-close-btn rc-dlg-close" id="rc-sc-close" aria-label="Закрыть">
-                                <svg width="24" height="24" viewBox="0 0 24 24">
-                                    <path fill="currentColor" d="M18.4 4L12 10.4L5.6 4L4 5.6L10.4 12L4 18.4L5.6 20L12 13.6L18.4 20L20 18.4L13.6 12L20 5.6L18.4 4Z"/>
-                                </svg>
+                            <button class="rc-close-btn" id="rc-close">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M18.4 4L12 10.4L5.6 4L4 5.6L10.4 12L4 18.4L5.6 20L12 13.6L18.4 20L20 18.4L13.6 12L20 5.6L18.4 4Z" fill="currentColor"/></svg>
                             </button>
                         </div>
-
-                        <!-- Pill Tab Bar: Окна / Приложения & Экраны -->
-                        <div class="rc-sc-tabs tabs" role="tablist">
-                            <button class="rc-sc-tab tab active on" data-tab="apps" data-t="apps" role="tab" aria-selected="true">Окна / Приложения</button>
-                            <button class="rc-sc-tab tab" data-tab="screens" data-t="screens" role="tab" aria-selected="false">Экраны</button>
+                        <div class="rc-tabs">
+                            <button class="rc-tab active" data-tab="apps">Приложения</button>
+                            <button class="rc-tab" data-tab="screens">Экраны</button>
                         </div>
-
-                        <!-- 2-Column Source Grid -->
-                        <div class="rc-sc-grid grid" id="rc-sc-grid"></div>
-
-                        <!-- Stream Quality Section -->
-                        <div class="rc-sc-quality-section">
-                            <div class="rc-sc-section-label">КАЧЕСТВО СТРИМА</div>
-                            <div class="rc-sc-quality-controls">
-                                <!-- Resolution Segmented Control -->
-                                <div class="rc-sc-segment-group" id="rc-sc-res-group">
-                                    <button class="rc-sc-segment-btn" data-val="720p">720p</button>
-                                    <button class="rc-sc-segment-btn active" data-val="1080p">1080p</button>
-                                </div>
-                                <!-- FPS Segmented Control -->
-                                <div class="rc-sc-segment-group" id="rc-sc-fps-group">
-                                    <button class="rc-sc-segment-btn" data-val="30">30 FPS</button>
-                                    <button class="rc-sc-segment-btn active" data-val="60">60 FPS</button>
-                                </div>
+                        <div class="rc-grid" id="rc-grid"></div>
+                        <div class="rc-quality-title">КАЧЕСТВО СТРИМА</div>
+                        <div class="rc-quality-row">
+                            <div class="rc-segment-group" id="rc-res-group">
+                                <button class="rc-segment-btn" data-val="720p">720p</button>
+                                <button class="rc-segment-btn active" data-val="1080p">1080p</button>
+                            </div>
+                            <div class="rc-segment-group" id="rc-fps-group">
+                                <button class="rc-segment-btn" data-val="30">30 FPS</button>
+                                <button class="rc-segment-btn active" data-val="60">60 FPS</button>
                             </div>
                         </div>
-
-                        <!-- Action Buttons Footer -->
-                        <div class="rc-sc-footer foot">
-                            <button class="rc-sc-btn-cancel rc-cancel-flat" id="rc-sc-cancel">Отмена</button>
-                            <button class="rc-sc-btn-submit go" id="rc-sc-submit" title="Прямой эфир">Начать трансляцию</button>
+                        <div class="rc-footer">
+                            <button class="rc-btn-cancel" id="rc-cancel">Отмена</button>
+                            <button class="rc-btn-submit" id="rc-submit">Прямой эфир</button>
                         </div>
                     `;
-                    shadowRoot.appendChild(modalContainer);
+                    shadowRoot.appendChild(modal);
                     document.body.appendChild(overlay);
+
+                    const GRADIENTS = [
+                        "linear-gradient(135deg, #15803d 0%, #166534 100%)",
+                        "linear-gradient(135deg, #b45309 0%, #d97706 100%)",
+                        "linear-gradient(135deg, #9d174d 0%, #be185d 100%)",
+                        "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)",
+                        "linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%)",
+                        "linear-gradient(135deg, #0f766e 0%, #0d9488 100%)"
+                    ];
+
+                    const ICONS = {
+                        gamepad: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H9v2H7v-2H5v-2h2V9h2v2h2v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3-3c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>',
+                        zap: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>',
+                        sparkles: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg>',
+                        chat: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>',
+                        screen: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/></svg>',
+                        appBlue: '<svg width="18" height="18" viewBox="0 0 24 24"><rect width="20" height="20" x="2" y="2" rx="4" fill="#3b82f6"/><path d="M6 8h12M6 12h12M6 16h8" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/></svg>',
+                        appFirefox: '<svg width="18" height="18" viewBox="0 0 24 24"><rect width="20" height="20" x="2" y="2" rx="4" fill="#ea580c"/><path d="M12 5a7 7 0 0 1 7 7c0 3.9-3.1 7-7 7s-7-3.1-7-7c0-2 .8-3.8 2.1-5.1C8 9 9.8 11 12 11c0-1.8-.9-2.7-1.8-3.6.9-.6 1.8-.9 1.8-2.4z" fill="#facc15"/></svg>',
+                        appScreen: '<svg width="18" height="18" viewBox="0 0 24 24"><rect width="20" height="20" x="2" y="2" rx="4" fill="#475569"/><path d="M6 7h12v7H6zM9 17h6" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/></svg>'
+                    };
+
+                    function getCardPreset(name, index) {
+                        const low = (name || "").toLowerCase();
+                        if (low.includes("rustcord") || low.includes("game") || low.includes("steam") || low.includes("play") || low.includes("minecraft") || low.includes("roblox")) {
+                            return { bg: "linear-gradient(135deg, #15803d 0%, #166534 100%)", icon: "gamepad", appIcon: "appBlue" };
+                        }
+                        if (low.includes("firefox") || low.includes("chrome") || low.includes("edge") || low.includes("browser") || low.includes("opera") || low.includes("brave")) {
+                            return { bg: "linear-gradient(135deg, #b45309 0%, #d97706 100%)", icon: "zap", appIcon: low.includes("firefox") ? "appFirefox" : "appBlue" };
+                        }
+                        if (low.includes("code") || low.includes("studio") || low.includes("git") || low.includes("rewrite") || low.includes("terminal") || low.includes("cmd")) {
+                            return { bg: "linear-gradient(135deg, #9d174d 0%, #be185d 100%)", icon: "sparkles", appIcon: "appBlue" };
+                        }
+                        if (low.includes("chat") || low.includes("recordings") || low.includes("telegram") || low.includes("discord") || low.includes("obs")) {
+                            return { bg: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)", icon: "chat", appIcon: "appBlue" };
+                        }
+                        const bg = GRADIENTS[index % GRADIENTS.length];
+                        const iconKeys = ["gamepad", "zap", "sparkles", "chat"];
+                        return { bg, icon: iconKeys[index % iconKeys.length], appIcon: "appBlue" };
+                    }
 
                     const allInitial = window.__RUSTCORD_SOURCES__ || [];
                     const hasWin = allInitial.some(s => s && s.id && s.id.startsWith("window:"));
                     const hasScr = allInitial.some(s => s && s.id && s.id.startsWith("screen:"));
                     let currentTab = (!hasWin && hasScr) ? "screens" : "apps";
 
-                    if (currentTab === "screens") {
-                        const appTab = shadowRoot.querySelector('[data-tab="apps"], [data-t="apps"]');
-                        const screenTab = shadowRoot.querySelector('[data-tab="screens"], [data-t="screens"]');
-                        if (appTab) {
-                            appTab.classList.remove("active", "on");
-                            appTab.setAttribute("aria-selected", "false");
-                        }
-                        if (screenTab) {
-                            screenTab.classList.add("active", "on");
-                            screenTab.setAttribute("aria-selected", "true");
-                        }
+                    const appTabBtn = shadowRoot.querySelector('[data-tab="apps"]');
+                    const screenTabBtn = shadowRoot.querySelector('[data-tab="screens"]');
+                    if (currentTab === "screens" && appTabBtn && screenTabBtn) {
+                        appTabBtn.classList.remove("active");
+                        screenTabBtn.classList.add("active");
                     }
 
                     let selectedSourceId = null;
                     let selectedResolution = "1080p";
                     let selectedFps = "60";
 
-                    const resBtns = shadowRoot.querySelectorAll("#rc-sc-res-group .rc-sc-segment-btn");
-                    resBtns.forEach(btn => {
-                        btn.addEventListener("click", () => {
-                            resBtns.forEach(b => b.classList.remove("active"));
-                            btn.classList.add("active");
-                            selectedResolution = btn.getAttribute("data-val") || "1080p";
-                        });
-                    });
-
-                    const fpsBtns = shadowRoot.querySelectorAll("#rc-sc-fps-group .rc-sc-segment-btn");
-                    fpsBtns.forEach(btn => {
-                        btn.addEventListener("click", () => {
-                            fpsBtns.forEach(b => b.classList.remove("active"));
-                            btn.classList.add("active");
-                            selectedFps = btn.getAttribute("data-val") || "60";
-                        });
-                    });
-
                     function renderCards() {
-                        const grid = shadowRoot.getElementById("rc-sc-grid") || shadowRoot.querySelector(".rc-sc-grid");
+                        const grid = shadowRoot.getElementById("rc-grid");
                         if (!grid) return;
                         grid.innerHTML = "";
 
                         const allSources = (window.__RUSTCORD_SOURCES__ || []).filter(s => s && typeof s === 'object' && s.id);
-                        let filtered = [];
+                        const isApps = (currentTab === "apps");
+                        const filtered = allSources.filter(s => {
+                            const isScreen = s.kind === "screen" || (s.id && s.id.startsWith("screen:"));
+                            return isApps ? !isScreen : isScreen;
+                        });
 
-                        if (currentTab === "apps" || currentTab === "app") {
-                            filtered = allSources.filter(s => (s.kind === "window" || (s.id && s.id.startsWith("window:"))));
-                        } else if (currentTab === "screens" || currentTab === "screen") {
-                            filtered = allSources.filter(s => (s.kind === "screen" || (s.id && s.id.startsWith("screen:"))));
-                        }
-
-                        if (filtered.length === 0) {
-                            grid.innerHTML = `
-                                <div style="grid-column: span 2; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 220px; color: var(--text-muted, #949ba4);">
-                                    <div style="margin-bottom: 8px;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
-                                    <div style="font-weight: 500; font-size: 14px;">Источники не найдены</div>
-                                </div>
-                            `;
-                            return;
-                        }
-
-                        if (selectedSourceId && !filtered.some(s => s.id === selectedSourceId)) {
+                        if (filtered.length > 0) {
+                            if (!selectedSourceId || !filtered.some(s => s.id === selectedSourceId)) {
+                                selectedSourceId = filtered[0].id;
+                            }
+                        } else {
                             selectedSourceId = null;
                         }
 
-                        filtered.forEach(source => {
+                        filtered.forEach((source, idx) => {
                             const isSelected = source.id === selectedSourceId;
                             const card = document.createElement("div");
-                            card.className = "rc-sc-card card" + (isSelected ? " selected sel" : "");
+                            card.className = "rc-card" + (isSelected ? " selected" : "");
                             card.setAttribute("data-source-id", source.id);
 
-                            const isScreen = (source.kind === "screen" || (source.id || "").startsWith("screen:"));
-                            const iconSvg = isScreen 
-                                ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="#949ba4"><path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/></svg>'
-                                : '<svg width="18" height="18" viewBox="0 0 24 24" fill="#949ba4"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/></svg>';
+                            const preset = getCardPreset(source.name, idx);
+                            const isScreen = source.kind === "screen" || (source.id && source.id.startsWith("screen:"));
 
-                            const thumbSrc = source.thumb || source.url || "";
+                            let previewInner = "";
+                            if (isScreen) {
+                                if (source.thumb) {
+                                    previewInner = `<img class="rc-preview-img" src="${source.thumb}" alt="" />`;
+                                } else {
+                                    previewInner = `
+                                        <div class="rc-preview-badge">${ICONS.screen}</div>
+                                        <div class="rc-preview-title">${source.name || "Экран"}</div>
+                                    `;
+                                }
+                            } else {
+                                previewInner = `
+                                    <div class="rc-preview-badge">${ICONS[preset.icon]}</div>
+                                    <div class="rc-preview-title">${source.name || "Приложение"}</div>
+                                `;
+                            }
+
+                            const bottomIconSvg = isScreen ? ICONS.appScreen : ICONS[preset.appIcon];
+                            const previewBg = isScreen && source.thumb ? "#1e1f22" : preset.bg;
 
                             card.innerHTML = `
-                                <div class="rc-sc-thumb thumb">
-                                    ${thumbSrc ? `<img src="${thumbSrc}" alt="" />` : '<div class="rc-sc-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#5865f2" stroke-width="2"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>'}
-                                    ${isSelected ? '<div class="rc-sc-check-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="#ffffff"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg></div>' : ''}
+                                <div class="rc-preview" style="background: ${previewBg};">
+                                    ${previewInner}
                                 </div>
-                                <div class="rc-sc-info name">
-                                    <span class="rc-sc-icon ic">${iconSvg}</span>
-                                    <span class="rc-sc-name" title="${source.name || ''}">${source.name || ''}</span>
+                                <div class="rc-info">
+                                    <span class="rc-icon">${bottomIconSvg}</span>
+                                    <span class="rc-name" title="${source.name || ''}">${source.name || ''}</span>
                                 </div>
                             `;
 
@@ -737,16 +745,12 @@
                         });
                     }
 
-                    const tabBtns = shadowRoot.querySelectorAll(".rc-sc-tab, .tab");
+                    const tabBtns = shadowRoot.querySelectorAll(".rc-tab");
                     tabBtns.forEach(tab => {
                         tab.addEventListener("click", () => {
-                            tabBtns.forEach(t => {
-                                t.classList.remove("active", "on");
-                                t.setAttribute("aria-selected", "false");
-                            });
-                            tab.classList.add("active", "on");
-                            tab.setAttribute("aria-selected", "true");
-                            currentTab = tab.getAttribute("data-tab") || tab.getAttribute("data-t") || "apps";
+                            tabBtns.forEach(t => t.classList.remove("active"));
+                            tab.classList.add("active");
+                            currentTab = tab.getAttribute("data-tab") || "apps";
                             renderCards();
                         });
                     });
@@ -764,7 +768,7 @@
                     }
 
                     fetchBackendSources();
-                    const pollTimer = setInterval(fetchBackendSources, 1500);
+                    const pollTimer = setInterval(fetchBackendSources, 2000);
 
                     window.__UPDATE_RUSTCORD_SOURCES__ = () => {
                         renderCards();
@@ -775,161 +779,180 @@
                         clearInterval(pollTimer);
                         window.__UPDATE_RUSTCORD_SOURCES__ = () => {};
                         window.removeEventListener("keydown", escHandler, true);
-                        currentShadowRoot = null;
-                        try { overlay.remove(); } catch(_) {}
                     };
-
-                    const handleCancel = () => {
-                        cleanup();
-                        reject(new DOMException("Cancelled", "NotAllowedError"));
-                    };
-
-                    const cancelBtn = shadowRoot.querySelector("#rc-sc-cancel") || shadowRoot.querySelector(".rc-sc-btn-cancel");
-                    if (cancelBtn) cancelBtn.addEventListener("click", handleCancel);
-
-                    const closeBtn = shadowRoot.querySelector("#rc-sc-close") || shadowRoot.querySelector(".rc-sc-close-btn");
-                    if (closeBtn) closeBtn.addEventListener("click", handleCancel);
-
-                    overlay.addEventListener("click", (e) => {
-                        const path = (typeof e.composedPath === "function") ? e.composedPath() : [e.target];
-                        if (path[0] === overlay) {
-                            handleCancel();
-                        }
-                    });
 
                     const escHandler = (e) => {
-                        if (e.key === "Escape" || e.code === "Escape") {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleCancel();
+                        if (e.key === "Escape") {
+                            cleanup();
+                            overlay.remove();
+                            reject(new DOMException("Cancelled", "NotAllowedError"));
                         }
                     };
                     window.addEventListener("keydown", escHandler, true);
 
-                    const submitBtn = shadowRoot.querySelector("#rc-sc-submit") || shadowRoot.querySelector(".rc-sc-btn-submit");
+                    const closeBtn = shadowRoot.getElementById("rc-close");
+                    if (closeBtn) {
+                        closeBtn.addEventListener("click", () => {
+                            cleanup();
+                            overlay.remove();
+                            reject(new DOMException("Cancelled", "NotAllowedError"));
+                        });
+                    }
+
+                    const cancelBtn = shadowRoot.getElementById("rc-cancel");
+                    if (cancelBtn) {
+                        cancelBtn.addEventListener("click", () => {
+                            cleanup();
+                            overlay.remove();
+                            reject(new DOMException("Cancelled", "NotAllowedError"));
+                        });
+                    }
+
+                    const resBtns = shadowRoot.querySelectorAll("#rc-res-group .rc-segment-btn");
+                    resBtns.forEach(btn => {
+                        btn.addEventListener("click", () => {
+                            resBtns.forEach(b => b.classList.remove("active"));
+                            btn.classList.add("active");
+                            selectedResolution = btn.getAttribute("data-val") || "1080p";
+                        });
+                    });
+
+                    const fpsBtns = shadowRoot.querySelectorAll("#rc-fps-group .rc-segment-btn");
+                    fpsBtns.forEach(btn => {
+                        btn.addEventListener("click", () => {
+                            fpsBtns.forEach(b => b.classList.remove("active"));
+                            btn.classList.add("active");
+                            selectedFps = btn.getAttribute("data-val") || "60";
+                        });
+                    });
+
+                    const submitBtn = shadowRoot.getElementById("rc-submit");
                     if (submitBtn) {
                         submitBtn.addEventListener("click", async () => {
                             if (!selectedSourceId) {
-                                const origText = submitBtn.textContent;
-                                submitBtn.textContent = "Выберите источник";
-                                setTimeout(() => { submitBtn.textContent = origText; }, 1500);
+                                cleanup();
+                                overlay.remove();
+                                reject(new DOMException("Cancelled", "NotAllowedError"));
                                 return;
                             }
 
-                            cleanup();
+                            const fpsNum = parseInt(selectedFps, 10) || 60;
+                            const widthNum = selectedResolution === "720p" ? 1280 : 1920;
+                            const heightNum = selectedResolution === "720p" ? 720 : 1080;
+
+                            if (selectedSourceId.startsWith("screen:")) {
+                                cleanup();
+                                overlay.remove();
+                                try {
+                                    const stream = await origGetDisplayMedia({
+                                        video: {
+                                            frameRate: fpsNum,
+                                            width: { ideal: widthNum },
+                                            height: { ideal: heightNum }
+                                        },
+                                        audio: false
+                                    });
+                                    resolve(stream);
+                                } catch (err) {
+                                    reject(err);
+                                }
+                                return;
+                            }
 
                             try {
-                                const RESOLUTION_CONSTRAINTS = {
-                                    "720p": { width: { ideal: 1280, max: 2560 }, height: { ideal: 720, max: 1440 } },
-                                    "1080p": { width: { ideal: 1920, max: 3840 }, height: { ideal: 1080, max: 2160 } }
-                                };
-                                const FPS_CONSTRAINTS = {
-                                    "30": { frameRate: { ideal: 30, max: 30 } },
-                                    "60": { frameRate: { ideal: 60, max: 60 } }
-                                };
-
-                                const resConst = RESOLUTION_CONSTRAINTS[selectedResolution] || RESOLUTION_CONSTRAINTS["1080p"];
-                                const fpsConst = FPS_CONSTRAINTS[selectedFps] || FPS_CONSTRAINTS["60"];
-
-                                const constraints = {
-                                    video: {
-                                        ...resConst,
-                                        ...fpsConst
-                                    },
-                                    audio: true,
-                                    systemAudio: "include"
-                                };
-                                window.__CAPTURED_CONSTRAINTS__ = constraints;
-
-                                const fpsNum = parseInt(selectedFps, 10) || 60;
-                                const widthNum = selectedResolution === "720p" ? 1280 : 1920;
-                                const heightNum = selectedResolution === "720p" ? 720 : 1080;
-
-                                if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === "function") {
-                                    try {
-                                        const canvas = document.createElement("canvas");
-                                        canvas.width = widthNum;
-                                        canvas.height = heightNum;
-                                        const ctx = canvas.getContext("2d", { alpha: false });
-                                        if (ctx) {
-                                            ctx.fillStyle = "#1e1f22";
-                                            ctx.fillRect(0, 0, canvas.width, canvas.height);
-                                        }
-
-                                        let stream = null;
-                                        if (typeof canvas.captureStream === "function") {
-                                            stream = canvas.captureStream(fpsNum);
-                                        }
-
-                                        if (stream) {
-                                            const img = new Image();
-                                            let isDrawing = false;
-                                            img.onload = () => {
-                                                if (ctx) {
-                                                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                                                }
-                                                isDrawing = false;
-                                            };
-
-                                            const onFrame = (payload) => {
-                                                if (payload && payload.data && !isDrawing) {
-                                                    isDrawing = true;
-                                                    img.src = payload.data;
-                                                }
-                                            };
-
-                                            let channel = null;
-                                            if (typeof window.__TAURI__.core.Channel === "function") {
-                                                channel = new window.__TAURI__.core.Channel();
-                                                channel.onmessage = onFrame;
-                                            }
-
-                                            window.__TAURI__.core.invoke("start_capture", {
-                                                id: selectedSourceId,
-                                                fps: fpsNum,
-                                                on_frame: channel || onFrame,
-                                                onFrame: channel || onFrame
-                                            }).catch(err => {
-                                                console.error("[Rustcord] start_capture invoke error:", err);
-                                            });
-
-                                            const vTracks = stream.getVideoTracks();
-                                            if (vTracks.length > 0) {
-                                                const origStop = vTracks[0].stop ? vTracks[0].stop.bind(vTracks[0]) : null;
-                                                vTracks[0].stop = function() {
-                                                    if (origStop) origStop();
-                                                    if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === "function") {
-                                                        window.__TAURI__.core.invoke("stop_capture").catch(() => {});
-                                                    }
-                                                };
-                                                vTracks[0].addEventListener("ended", () => {
-                                                    if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === "function") {
-                                                        window.__TAURI__.core.invoke("stop_capture").catch(() => {});
-                                                    }
-                                                });
-                                            }
-
-                                            try {
-                                                const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                                                if (AudioCtx) {
-                                                    const actx = new AudioCtx();
-                                                    const dest = actx.createMediaStreamDestination();
-                                                    const aTrack = dest.stream.getAudioTracks()[0];
-                                                    if (aTrack) {
-                                                        stream.addTrack(aTrack);
-                                                    }
-                                                }
-                                            } catch (_) {}
-
-                                            resolve(stream);
-                                            return;
-                                        }
-                                    } catch (tauriErr) {
-                                        console.warn("[Rustcord] Tauri capture stream error, falling back:", tauriErr);
-                                    }
+                                const canvas = document.createElement("canvas");
+                                canvas.width = widthNum;
+                                canvas.height = heightNum;
+                                const ctx = canvas.getContext("2d", { alpha: false });
+                                if (ctx) {
+                                    ctx.fillStyle = "#1e1f22";
+                                    ctx.fillRect(0, 0, widthNum, heightNum);
                                 }
 
-                                const stream = await origGetDisplayMedia(constraints);
+                                const stream = canvas.captureStream ? canvas.captureStream(fpsNum) : null;
+                                if (stream) {
+                                    let currentImg = null;
+                                    let animActive = true;
+                                    let lastDrawTime = 0;
+                                    const targetInterval = 1000 / fpsNum;
+
+                                    function renderLoop(timestamp) {
+                                        if (!animActive) return;
+                                        if (timestamp - lastDrawTime >= targetInterval) {
+                                            if (currentImg && currentImg.complete && currentImg.naturalWidth > 0) {
+                                                ctx.drawImage(currentImg, 0, 0, canvas.width, canvas.height);
+                                            }
+                                            lastDrawTime = timestamp;
+                                        }
+                                        requestAnimationFrame(renderLoop);
+                                    }
+                                    requestAnimationFrame(renderLoop);
+
+                                    let isImgLoading = false;
+                                    const onFrame = (payload) => {
+                                        if (payload && payload.data && !isImgLoading) {
+                                            isImgLoading = true;
+                                            const tempImg = new Image();
+                                            tempImg.onload = () => {
+                                                currentImg = tempImg;
+                                                isImgLoading = false;
+                                            };
+                                            tempImg.onerror = () => {
+                                                isImgLoading = false;
+                                            };
+                                            tempImg.src = payload.data;
+                                        }
+                                    };
+
+                                    let channel = null;
+                                    if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.Channel === "function") {
+                                        channel = new window.__TAURI__.core.Channel();
+                                        channel.onmessage = onFrame;
+                                    }
+
+                                    if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === "function") {
+                                        window.__TAURI__.core.invoke("start_capture", {
+                                            id: selectedSourceId,
+                                            fps: fpsNum,
+                                            on_frame: channel || onFrame,
+                                            onFrame: channel || onFrame
+                                        }).catch(err => {
+                                            console.error("[Rustcord] start_capture invoke error:", err);
+                                        });
+                                    }
+
+                                    const vTracks = stream.getVideoTracks();
+                                    if (vTracks.length > 0) {
+                                        const origStop = vTracks[0].stop ? vTracks[0].stop.bind(vTracks[0]) : null;
+                                        const stopAll = () => {
+                                            animActive = false;
+                                            if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === "function") {
+                                                window.__TAURI__.core.invoke("stop_capture").catch(() => {});
+                                            }
+                                        };
+                                        vTracks[0].stop = function() {
+                                            if (origStop) origStop();
+                                            stopAll();
+                                        };
+                                        vTracks[0].addEventListener("ended", stopAll);
+                                    }
+
+                                    cleanup();
+                                    overlay.remove();
+                                    resolve(stream);
+                                    return;
+                                }
+                            } catch (tauriErr) {
+                                console.warn("[Rustcord] Tauri capture stream error, falling back:", tauriErr);
+                            }
+
+                            cleanup();
+                            overlay.remove();
+                            try {
+                                const stream = await origGetDisplayMedia({
+                                    video: { frameRate: fpsNum },
+                                    audio: false
+                                });
                                 resolve(stream);
                             } catch (err) {
                                 reject(err);
@@ -1546,16 +1569,16 @@
 
     function sendToNative(action, params = {}) {
         try {
-            const query = Object.keys(params)
-                .map(k => encodeURIComponent(k) + "=" + encodeURIComponent(params[k]))
-                .join("&");
-            const iframe = document.createElement("iframe");
-            iframe.style.display = "none";
-            iframe.src = "https://rustcord.local/" + action + (query ? "?" + query : "");
-            document.body.appendChild(iframe);
+            const payload = JSON.stringify({ action, params, id: Date.now() });
+            const prevTitle = document.title;
+            document.title = "__RC_IPC__:" + payload;
             setTimeout(() => {
-                try { iframe.remove(); } catch(_) {}
-            }, 250);
+                try {
+                    if (document.title.startsWith("__RC_IPC__:")) {
+                        document.title = prevTitle || "Discord";
+                    }
+                } catch (_) {}
+            }, 60);
         } catch (err) {
             console.error("[Rustcord] Native IPC error:", err);
         }

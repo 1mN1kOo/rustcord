@@ -75,6 +75,7 @@ pub fn list_sources_internal() -> Vec<SourceItem> {
     }
 
     let mut found_windows = false;
+    let mut seen_titles = std::collections::HashSet::new();
     if let Ok(windows) = Window::all() {
         for (w_idx, window) in windows.into_iter().enumerate() {
             if window.is_minimized().unwrap_or(false) {
@@ -91,10 +92,18 @@ pub fn list_sources_internal() -> Vec<SourceItem> {
                 || lower.contains("диспетчер программ")
                 || lower.contains("windows input")
                 || lower.contains("интерфейс ввода")
+                || lower.contains("text input")
                 || lower.contains("cortana")
                 || lower.contains("settings")
                 || lower.contains("параметры")
+                || lower == "xbox"
+                || lower.contains("nvidia geforce")
+                || lower.contains("overlay")
             {
+                continue;
+            }
+
+            if !seen_titles.insert(title.clone()) {
                 continue;
             }
 
@@ -203,9 +212,13 @@ fn enumerate_fallback_windows() -> Vec<(HWND, String)> {
                 && !lower.contains("диспетчер программ")
                 && !lower.contains("windows input")
                 && !lower.contains("интерфейс ввода")
+                && !lower.contains("text input")
                 && !lower.contains("cortana")
                 && !lower.contains("settings")
                 && !lower.contains("параметры")
+                && lower != "xbox"
+                && !lower.contains("nvidia geforce")
+                && !lower.contains("overlay")
             {
                 data.windows.push((hwnd, title));
             }

@@ -76,12 +76,7 @@ fn handle_socks5_client(mut client: TcpStream) -> std::io::Result<()> {
             if n < 5 + domain_len + 2 { return Ok(()); }
             let domain = String::from_utf8_lossy(&buf[5..5 + domain_len]).to_string();
             target_port = u16::from_be_bytes([buf[5 + domain_len], buf[5 + domain_len + 1]]);
-            
-            target_addr = if domain.ends_with("discord.com") || domain.ends_with("discordapp.com") || domain.ends_with("discord.gg") {
-                "162.159.130.233".to_string()
-            } else {
-                domain
-            };
+            target_addr = domain;
         }
         _ => return Ok(()),
     }
@@ -90,8 +85,27 @@ fn handle_socks5_client(mut client: TcpStream) -> std::io::Result<()> {
     let mut dest = match TcpStream::connect(&dest_target) {
         Ok(s) => s,
         Err(_) => {
-            let _ = client.write_all(&[0x05, 0x05, 0x00, 0x01, 0, 0, 0, 0, 0, 0]);
-            return Ok(());
+            let fallback_ip = if target_addr == "gateway.discord.gg" {
+                Some("162.159.136.234")
+            } else if target_addr.ends_with("discord.com") {
+                Some("162.159.135.232")
+            } else if target_addr.ends_with("discordapp.com") {
+                Some("162.159.130.233")
+            } else {
+                None
+            };
+            if let Some(ip) = fallback_ip {
+                match TcpStream::connect(format!("{}:{}", ip, target_port)) {
+                    Ok(s) => s,
+                    Err(_) => {
+                        let _ = client.write_all(&[0x05, 0x05, 0x00, 0x01, 0, 0, 0, 0, 0, 0]);
+                        return Ok(());
+                    }
+                }
+            } else {
+                let _ = client.write_all(&[0x05, 0x05, 0x00, 0x01, 0, 0, 0, 0, 0, 0]);
+                return Ok(());
+            }
         }
     };
     dest.set_nodelay(true)?;

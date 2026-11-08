@@ -180,17 +180,27 @@ pub fn start_capture(id: String, fps: Option<u32>, on_frame: Channel<FramePayloa
             };
 
             if let Some(img) = maybe_img {
-                let width = img.width();
-                let height = img.height();
+                let (target_w, target_h) = if img.width() > 1920 || img.height() > 1080 {
+                    let ratio = (1920.0 / img.width() as f32).min(1080.0 / img.height() as f32);
+                    ((img.width() as f32 * ratio) as u32, (img.height() as f32 * ratio) as u32)
+                } else {
+                    (img.width(), img.height())
+                };
+
+                let final_img = if target_w != img.width() || target_h != img.height() {
+                    image::imageops::resize(&img, target_w, target_h, image::imageops::FilterType::Nearest)
+                } else {
+                    img
+                };
 
                 let mut jpeg_bytes = Vec::new();
                 let mut cursor = Cursor::new(&mut jpeg_bytes);
-                if img.write_to(&mut cursor, ImageFormat::Jpeg).is_ok() {
+                if final_img.write_to(&mut cursor, ImageFormat::Jpeg).is_ok() {
                     let b64 = base64::engine::general_purpose::STANDARD.encode(&jpeg_bytes);
                     let payload = FramePayload {
                         data: format!("data:image/jpeg;base64,{}", b64),
-                        width,
-                        height,
+                        width: target_w,
+                        height: target_h,
                     };
                     if on_frame.send(payload).is_err() {
                         break;
