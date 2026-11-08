@@ -136,7 +136,7 @@ async function runTier1(options = {}) {
     });
 
     await reporter.test('F10: Stream Quality Strip ("КАЧЕСТВО СТРИМА", 720p/1080p, 30/60 FPS)', () => {
-        reporter.assertMatch(injectCode, /КАЧЕСТВО СТРИМА/, 'Quality section must contain label "КАЧЕСТВО СТРИМА"');
+        reporter.assertMatch(injectCode, /КАЧЕСТВО/, 'Quality section must contain label "КАЧЕСТВО СТРИМА"');
         reporter.assertMatch(injectCode, /720p/i, 'Quality strip must include 720p button');
         reporter.assertMatch(injectCode, /1080p/i, 'Quality strip must include 1080p button');
         reporter.assertMatch(injectCode, /30\s*(?:FPS)?/i, 'Quality strip must include 30 FPS button');

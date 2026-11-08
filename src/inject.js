@@ -1,5 +1,5 @@
 (function() {
-    const CURRENT_VERSION = "1.1.8";
+    const CURRENT_VERSION = "1.1.9";
 
     try {
         if (document.documentElement) {
@@ -502,6 +502,37 @@
                             letter-spacing: 0.5px !important;
                             margin-bottom: 8px !important;
                         }
+                        .rc-quality-popover {
+                            position: absolute !important;
+                            left: 0 !important;
+                            bottom: calc(100% + 10px) !important;
+                            width: 270px !important;
+                            padding: 14px !important;
+                            border: 1px solid #3f4147 !important;
+                            border-radius: 8px !important;
+                            background: #2b2d31 !important;
+                            box-shadow: 0 8px 24px rgba(0,0,0,.35) !important;
+                            z-index: 2 !important;
+                        }
+                        .rc-quality-popover[hidden] { display: none !important; }
+                        .rc-quality-group + .rc-quality-group { margin-top: 14px !important; }
+                        .rc-quality-group .rc-quality-title { margin-bottom: 7px !important; }
+                        .rc-quality-group .rc-segment-group { display: flex !important; width: 100% !important; }
+                        .rc-quality-group .rc-segment-btn { flex: 1 !important; padding: 7px 8px !important; }
+                        .rc-settings-wrap { position: relative !important; margin-right: auto !important; }
+                        .rc-settings-btn {
+                            display: inline-flex !important; align-items: center !important; gap: 8px !important;
+                            padding: 9px 12px !important; border: 1px solid #4e5058 !important; border-radius: 4px !important;
+                            background: #2b2d31 !important; color: #dbdee1 !important; font: 500 13px "gg sans", sans-serif !important;
+                            cursor: pointer !important;
+                        }
+                        .rc-settings-btn:hover, .rc-settings-btn[aria-expanded="true"] { background: #35373c !important; color: #fff !important; }
+                        .rc-settings-btn svg { width: 18px !important; height: 18px !important; }
+                        .rc-empty {
+                            grid-column: 1 / -1 !important; min-height: 150px !important; display: flex !important;
+                            align-items: center !important; justify-content: center !important; color: #949ba4 !important;
+                            font-size: 14px !important; text-align: center !important; padding: 20px !important;
+                        }
                         .rc-quality-row {
                             display: flex !important;
                             align-items: center !important;
@@ -572,6 +603,10 @@
                         .rc-btn-submit:active {
                             background-color: #3c45a5 !important;
                         }
+                        .rc-btn-submit:disabled {
+                            opacity: 0.45 !important;
+                            cursor: not-allowed !important;
+                        }
                     `;
                     shadowRoot.appendChild(shadowStyle);
 
@@ -592,20 +627,31 @@
                             <button class="rc-tab" data-tab="screens">Экраны</button>
                         </div>
                         <div class="rc-grid" id="rc-grid"></div>
-                        <div class="rc-quality-title">КАЧЕСТВО СТРИМА</div>
-                        <div class="rc-quality-row">
-                            <div class="rc-segment-group" id="rc-res-group">
-                                <button class="rc-segment-btn" data-val="720p">720p</button>
-                                <button class="rc-segment-btn active" data-val="1080p">1080p</button>
-                            </div>
-                            <div class="rc-segment-group" id="rc-fps-group">
-                                <button class="rc-segment-btn" data-val="30">30 FPS</button>
-                                <button class="rc-segment-btn active" data-val="60">60 FPS</button>
-                            </div>
-                        </div>
                         <div class="rc-footer">
+                            <div class="rc-settings-wrap">
+                                <button class="rc-settings-btn" id="rc-settings" type="button" aria-expanded="false" aria-controls="rc-quality-popover">
+                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 8.25a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5Z" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 13.5a7.5 7.5 0 0 0 0-3l1.3-1-1.5-2.6-1.6.6a7.6 7.6 0 0 0-2.6-1.5L14.7 4h-3.1l-.3 2a7.6 7.6 0 0 0-2.6 1.5l-1.6-.6-1.5 2.6 1.3 1a7.5 7.5 0 0 0 0 3l-1.3 1 1.5 2.6 1.6-.6a7.6 7.6 0 0 0 2.6 1.5l.3 2h3.1l.3-2a7.6 7.6 0 0 0 2.6-1.5l1.6.6 1.5-2.6-1.3-1Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                                    <span id="rc-settings-label">Настройки стрима · 720p · 30 FPS</span>
+                                </button>
+                                <div class="rc-quality-popover" id="rc-quality-popover" hidden>
+                                    <div class="rc-quality-group">
+                                        <div class="rc-quality-title">КАЧЕСТВО</div>
+                                        <div class="rc-segment-group" id="rc-res-group">
+                                            <button class="rc-segment-btn active" data-val="720p" type="button">720p</button>
+                                            <button class="rc-segment-btn" data-val="1080p" type="button">1080p</button>
+                                        </div>
+                                    </div>
+                                    <div class="rc-quality-group">
+                                        <div class="rc-quality-title">ЧАСТОТА КАДРОВ</div>
+                                        <div class="rc-segment-group" id="rc-fps-group">
+                                            <button class="rc-segment-btn active" data-val="30" type="button">30 FPS</button>
+                                            <button class="rc-segment-btn" data-val="60" type="button">60 FPS</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <button class="rc-btn-cancel" id="rc-cancel">Отмена</button>
-                            <button class="rc-btn-submit rc-sc-btn-submit" id="rc-submit">Прямой эфир</button>
+                            <button class="rc-btn-submit rc-sc-btn-submit" id="rc-submit" disabled>Прямой эфир</button>
                         </div>
                     `;
                     shadowRoot.appendChild(modal);
@@ -633,8 +679,8 @@
                     }
 
                     let selectedSourceId = null;
-                    let selectedResolution = "1080p";
-                    let selectedFps = "60";
+                    let selectedResolution = "720p";
+                    let selectedFps = "30";
 
                     function renderCards() {
                         const grid = shadowRoot.getElementById("rc-grid");
@@ -658,7 +704,15 @@
                             }
                         } else {
                             selectedSourceId = null;
+                            const empty = document.createElement("div");
+                            empty.className = "rc-empty";
+                            empty.textContent = allSources.length
+                                ? "В этой вкладке нет доступных источников. Выберите другую вкладку."
+                                : "Ищем доступные окна и экраны…";
+                            grid.appendChild(empty);
                         }
+                        const startBtn = shadowRoot.getElementById("rc-submit");
+                        if (startBtn) startBtn.disabled = !selectedSourceId;
 
                         filtered.forEach((source) => {
                             const isSelected = source.id === selectedSourceId;
@@ -772,6 +826,7 @@
                             resBtns.forEach(b => b.classList.remove("active"));
                             btn.classList.add("active");
                             selectedResolution = btn.getAttribute("data-val") || "1080p";
+                            updateSettingsLabel();
                         });
                     });
 
@@ -781,8 +836,23 @@
                             fpsBtns.forEach(b => b.classList.remove("active"));
                             btn.classList.add("active");
                             selectedFps = btn.getAttribute("data-val") || "60";
+                            updateSettingsLabel();
                         });
                     });
+
+                    const settingsBtn = shadowRoot.getElementById("rc-settings");
+                    const qualityPopover = shadowRoot.getElementById("rc-quality-popover");
+                    const settingsLabel = shadowRoot.getElementById("rc-settings-label");
+                    function updateSettingsLabel() {
+                        if (settingsLabel) settingsLabel.textContent = `Настройки стрима · ${selectedResolution} · ${selectedFps} FPS`;
+                    }
+                    if (settingsBtn && qualityPopover) {
+                        settingsBtn.addEventListener("click", () => {
+                            const opening = qualityPopover.hidden;
+                            qualityPopover.hidden = !opening;
+                            settingsBtn.setAttribute("aria-expanded", String(opening));
+                        });
+                    }
 
                     const submitBtn = shadowRoot.getElementById("rc-submit");
                     if (submitBtn) {
@@ -796,66 +866,12 @@
 
                             const fpsNum = parseInt(selectedFps, 10) || 60;
 
-                            if (window.__TAURI__ && window.__TAURI__.core && typeof MediaStreamTrackGenerator === "function") {
-                                try {
-                                    const gen = new MediaStreamTrackGenerator({ kind: "video" });
-                                    const writer = gen.writable.getWriter();
-                                    let busy = false;
-
-                                    const onFrame = async (buf) => {
-                                        if (busy) return;
-                                        busy = true;
-                                        try {
-                                            const blob = buf instanceof Blob ? buf : new Blob([buf], { type: "image/jpeg" });
-                                            const bmp = await createImageBitmap(blob);
-                                            const frame = new VideoFrame(bmp, { timestamp: performance.now() * 1000 });
-                                            bmp.close();
-                                            await writer.write(frame);
-                                            frame.close();
-                                        } catch (_) {}
-                                        busy = false;
-                                    };
-
-                                    let channel = null;
-                                    if (typeof window.__TAURI__.core.Channel === "function") {
-                                        channel = new window.__TAURI__.core.Channel();
-                                        channel.onmessage = onFrame;
-                                    }
-
-                                    if (typeof window.__TAURI__.core.invoke === "function") {
-                                        window.__TAURI__.core.invoke("start_capture", {
-                                            id: selectedSourceId,
-                                            fps: fpsNum,
-                                            on_frame: channel,
-                                            onFrame: channel
-                                        }).catch(err => {
-                                            console.error("[Rustcord] start_capture error:", err);
-                                        });
-                                    }
-
-                                    const stopAll = () => {
-                                        try { writer.close(); } catch (_) {}
-                                        if (typeof window.__TAURI__.core.invoke === "function") {
-                                            window.__TAURI__.core.invoke("stop_capture").catch(() => {});
-                                        }
-                                    };
-
-                                    gen.stop = stopAll;
-                                    gen.addEventListener("ended", stopAll);
-
-                                    cleanup();
-                                    overlay.remove();
-                                    resolve(new MediaStream([gen]));
-                                    return;
-                                } catch (genErr) {
-                                    console.warn("[Rustcord] MediaStreamTrackGenerator error, fallback to canvas:", genErr);
-                                }
-                            }
-
                             const widthNum = selectedResolution === "720p" ? 1280 : 1920;
                             const heightNum = selectedResolution === "720p" ? 720 : 1080;
 
-                            if (window.__TAURI__ && window.__TAURI__.core) {
+                            if (window.__TAURI__ && window.__TAURI__.core
+                                && typeof window.__TAURI__.core.invoke === "function"
+                                && typeof window.__TAURI__.core.Channel === "function") {
                                 try {
                                     const canvas = document.createElement("canvas");
                                     canvas.width = widthNum;
@@ -877,7 +893,12 @@
                                             if (!animActive) return;
                                             if (timestamp - lastDrawTime >= targetInterval) {
                                                 if (currentImg && currentImg.complete && currentImg.naturalWidth > 0) {
-                                                    ctx.drawImage(currentImg, 0, 0, canvas.width, canvas.height);
+                                                    const scale = Math.min(canvas.width / currentImg.naturalWidth, canvas.height / currentImg.naturalHeight);
+                                                    const drawWidth = currentImg.naturalWidth * scale;
+                                                    const drawHeight = currentImg.naturalHeight * scale;
+                                                    ctx.fillStyle = "#1e1f22";
+                                                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                                    ctx.drawImage(currentImg, (canvas.width - drawWidth) / 2, (canvas.height - drawHeight) / 2, drawWidth, drawHeight);
                                                 }
                                                 lastDrawTime = timestamp;
                                             }
@@ -912,13 +933,12 @@
                                         }
 
                                         if (typeof window.__TAURI__.core.invoke === "function") {
-                                            window.__TAURI__.core.invoke("start_capture", {
+                                            await window.__TAURI__.core.invoke("start_capture", {
                                                 id: selectedSourceId,
                                                 fps: fpsNum,
-                                                on_frame: channel,
+                                                width: widthNum,
+                                                height: heightNum,
                                                 onFrame: channel
-                                            }).catch(err => {
-                                                console.error("[Rustcord] start_capture error:", err);
                                             });
                                         }
 

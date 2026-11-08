@@ -8,7 +8,7 @@ use std::{
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
-pub const CURRENT_VERSION: &str = "1.1.8";
+pub const CURRENT_VERSION: &str = "1.1.9";
 pub const VERSION_CHECK_URL: &str = "https://rustcord.mollra.xyz/version.json";
 pub const DEFAULT_INSTALLER_URL: &str = "https://rustcord.mollra.xyz/RustcordSetup.exe";
 

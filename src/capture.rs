@@ -101,11 +101,19 @@ fn capture_window_hwnd(hwnd: HWND) -> Option<RgbaImage> {
 }
 
 #[tauri::command]
-pub fn start_capture(id: String, fps: Option<u32>, on_frame: Channel<InvokeResponseBody>) {
+pub fn start_capture(
+    id: String,
+    fps: Option<u32>,
+    width: Option<u32>,
+    height: Option<u32>,
+    on_frame: Channel<InvokeResponseBody>,
+) {
     let session_id = CURRENT_SESSION_ID.fetch_add(1, Ordering::SeqCst) + 1;
     IS_CAPTURING.store(true, Ordering::SeqCst);
 
     let target_fps = fps.unwrap_or(30).clamp(10, 60);
+    let max_width = width.unwrap_or(1920).clamp(640, 3840);
+    let max_height = height.unwrap_or(1080).clamp(360, 2160);
     let frame_interval = Duration::from_millis(1000 / target_fps as u64);
 
     std::thread::spawn(move || {
@@ -172,8 +180,9 @@ pub fn start_capture(id: String, fps: Option<u32>, on_frame: Channel<InvokeRespo
             };
 
             if let Some(img) = maybe_img {
-                let (target_w, target_h) = if img.width() > 1920 || img.height() > 1080 {
-                    let ratio = (1920.0 / img.width() as f32).min(1080.0 / img.height() as f32);
+                let (target_w, target_h) = if img.width() > max_width || img.height() > max_height {
+                    let ratio = (max_width as f32 / img.width() as f32)
+                        .min(max_height as f32 / img.height() as f32);
                     ((img.width() as f32 * ratio) as u32, (img.height() as f32 * ratio) as u32)
                 } else {
                     (img.width(), img.height())
