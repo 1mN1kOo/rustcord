@@ -330,7 +330,7 @@
                             to { opacity: 1; }
                         }
                         .rc-modal {
-                            width: 580px !important;
+                            width: 640px !important;
                             max-width: 95vw !important;
                             background: #313338 !important;
                             border-radius: 8px !important;
@@ -409,9 +409,9 @@
                         }
                         .rc-grid {
                             display: grid !important;
-                            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-                            gap: 16px !important;
-                            max-height: 320px !important;
+                            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+                            gap: 12px !important;
+                            max-height: 340px !important;
                             overflow-y: auto !important;
                             padding: 2px !important;
                             margin-bottom: 22px !important;
@@ -433,48 +433,37 @@
                             position: relative !important;
                             aspect-ratio: 16 / 9 !important;
                             width: 100% !important;
-                            border-radius: 8px !important;
+                            border-radius: 6px !important;
                             overflow: hidden !important;
+                            background: #1e1f22 !important;
                             display: flex !important;
-                            flex-direction: column !important;
                             align-items: center !important;
                             justify-content: center !important;
                             border: 2px solid transparent !important;
-                            transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+                            transition: border-color 0.15s ease, transform 0.15s ease !important;
                         }
                         .rc-card:hover .rc-preview {
                             border-color: #4e5058 !important;
+                            transform: translateY(-1px) !important;
                         }
                         .rc-card.selected .rc-preview {
                             border-color: #5865f2 !important;
                             box-shadow: 0 0 0 2px #5865f2 !important;
                         }
                         .rc-preview-badge {
-                            width: 48px !important;
-                            height: 48px !important;
+                            width: 44px !important;
+                            height: 44px !important;
                             border-radius: 50% !important;
                             background: rgba(0, 0, 0, 0.32) !important;
                             display: flex !important;
                             align-items: center !important;
                             justify-content: center !important;
-                            margin-bottom: 8px !important;
-                            backdrop-filter: blur(2px) !important;
-                        }
-                        .rc-preview-title {
-                            color: #ffffff !important;
-                            font-size: 13px !important;
-                            font-weight: 600 !important;
-                            text-align: center !important;
-                            max-width: 85% !important;
-                            overflow: hidden !important;
-                            text-overflow: ellipsis !important;
-                            white-space: nowrap !important;
-                            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) !important;
                         }
                         .rc-preview-img {
                             width: 100% !important;
                             height: 100% !important;
-                            object-fit: cover !important;
+                            object-fit: contain !important;
+                            background: #111214 !important;
                             display: block !important;
                         }
                         .rc-info {
@@ -493,7 +482,7 @@
                             justify-content: center !important;
                         }
                         .rc-name {
-                            font-size: 13px !important;
+                            font-size: 12px !important;
                             font-weight: 500 !important;
                             color: #dbdee1 !important;
                             white-space: nowrap !important;
@@ -622,44 +611,14 @@
                     shadowRoot.appendChild(modal);
                     document.body.appendChild(overlay);
 
-                    const GRADIENTS = [
-                        "linear-gradient(135deg, #15803d 0%, #166534 100%)",
-                        "linear-gradient(135deg, #b45309 0%, #d97706 100%)",
-                        "linear-gradient(135deg, #9d174d 0%, #be185d 100%)",
-                        "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)",
-                        "linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%)",
-                        "linear-gradient(135deg, #0f766e 0%, #0d9488 100%)"
-                    ];
-
                     const ICONS = {
-                        gamepad: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H9v2H7v-2H5v-2h2V9h2v2h2v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3-3c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>',
-                        zap: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>',
-                        sparkles: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg>',
-                        chat: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>',
                         screen: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/></svg>',
-                        appBlue: '<svg width="18" height="18" viewBox="0 0 24 24"><rect width="20" height="20" x="2" y="2" rx="4" fill="#3b82f6"/><path d="M6 8h12M6 12h12M6 16h8" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/></svg>',
-                        appFirefox: '<svg width="18" height="18" viewBox="0 0 24 24"><rect width="20" height="20" x="2" y="2" rx="4" fill="#ea580c"/><path d="M12 5a7 7 0 0 1 7 7c0 3.9-3.1 7-7 7s-7-3.1-7-7c0-2 .8-3.8 2.1-5.1C8 9 9.8 11 12 11c0-1.8-.9-2.7-1.8-3.6.9-.6 1.8-.9 1.8-2.4z" fill="#facc15"/></svg>',
-                        appScreen: '<svg width="18" height="18" viewBox="0 0 24 24"><rect width="20" height="20" x="2" y="2" rx="4" fill="#475569"/><path d="M6 7h12v7H6zM9 17h6" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/></svg>'
+                        window: '<svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/></svg>',
+                        appScreen: '<svg width="18" height="18" viewBox="0 0 24 24"><rect width="20" height="20" x="2" y="2" rx="4" fill="#475569"/><path d="M6 7h12v7H6zM9 17h6" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/></svg>',
+                        appWindow: '<svg width="18" height="18" viewBox="0 0 24 24"><rect width="20" height="20" x="2" y="2" rx="4" fill="#3b82f6"/><path d="M6 8h12M6 12h12M6 16h8" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/></svg>'
                     };
 
-                    function getCardPreset(name, index) {
-                        const low = (name || "").toLowerCase();
-                        if (low.includes("rustcord") || low.includes("game") || low.includes("steam") || low.includes("play") || low.includes("minecraft") || low.includes("roblox")) {
-                            return { bg: "linear-gradient(135deg, #15803d 0%, #166534 100%)", icon: "gamepad", appIcon: "appBlue" };
-                        }
-                        if (low.includes("firefox") || low.includes("chrome") || low.includes("edge") || low.includes("browser") || low.includes("opera") || low.includes("brave")) {
-                            return { bg: "linear-gradient(135deg, #b45309 0%, #d97706 100%)", icon: "zap", appIcon: low.includes("firefox") ? "appFirefox" : "appBlue" };
-                        }
-                        if (low.includes("code") || low.includes("studio") || low.includes("git") || low.includes("rewrite") || low.includes("terminal") || low.includes("cmd")) {
-                            return { bg: "linear-gradient(135deg, #9d174d 0%, #be185d 100%)", icon: "sparkles", appIcon: "appBlue" };
-                        }
-                        if (low.includes("chat") || low.includes("recordings") || low.includes("telegram") || low.includes("discord") || low.includes("obs")) {
-                            return { bg: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)", icon: "chat", appIcon: "appBlue" };
-                        }
-                        const bg = GRADIENTS[index % GRADIENTS.length];
-                        const iconKeys = ["gamepad", "zap", "sparkles", "chat"];
-                        return { bg, icon: iconKeys[index % iconKeys.length], appIcon: "appBlue" };
-                    }
+                    const thumbCache = new Map();
 
                     const allInitial = window.__RUSTCORD_SOURCES__ || [];
                     const hasWin = allInitial.some(s => s && s.id && s.id.startsWith("window:"));
@@ -683,6 +642,10 @@
                         grid.innerHTML = "";
 
                         const allSources = (window.__RUSTCORD_SOURCES__ || []).filter(s => s && typeof s === 'object' && s.id);
+                        allSources.forEach(s => {
+                            if (s.thumb) thumbCache.set(s.id, s.thumb);
+                        });
+
                         const isApps = (currentTab === "apps");
                         const filtered = allSources.filter(s => {
                             const isScreen = s.kind === "screen" || (s.id && s.id.startsWith("screen:"));
@@ -697,44 +660,39 @@
                             selectedSourceId = null;
                         }
 
-                        filtered.forEach((source, idx) => {
+                        filtered.forEach((source) => {
                             const isSelected = source.id === selectedSourceId;
                             const card = document.createElement("div");
                             card.className = "rc-card" + (isSelected ? " selected" : "");
                             card.setAttribute("data-source-id", source.id);
 
-                            const preset = getCardPreset(source.name, idx);
                             const isScreen = source.kind === "screen" || (source.id && source.id.startsWith("screen:"));
+                            const thumbSrc = source.thumb || thumbCache.get(source.id) || "";
 
-                            let previewInner = "";
-                            if (isScreen) {
-                                if (source.thumb) {
-                                    previewInner = `<img class="rc-preview-img" src="${source.thumb}" alt="" />`;
-                                } else {
-                                    previewInner = `
-                                        <div class="rc-preview-badge">${ICONS.screen}</div>
-                                        <div class="rc-preview-title">${source.name || "Экран"}</div>
-                                    `;
-                                }
-                            } else {
-                                previewInner = `
-                                    <div class="rc-preview-badge">${ICONS[preset.icon]}</div>
-                                    <div class="rc-preview-title">${source.name || "Приложение"}</div>
-                                `;
-                            }
+                            const hasThumb = !!thumbSrc;
+                            const previewInner = hasThumb
+                                ? `<img class="rc-preview-img" src="${thumbSrc}" alt="" />`
+                                : `<div class="rc-preview-badge">${isScreen ? ICONS.screen : ICONS.window}</div>`;
 
-                            const bottomIconSvg = isScreen ? ICONS.appScreen : ICONS[preset.appIcon];
-                            const previewBg = isScreen && source.thumb ? "#1e1f22" : preset.bg;
+                            const iconHtml = source.icon
+                                ? `<img src="${source.icon}" width="18" height="18" style="border-radius:4px;flex-shrink:0;">`
+                                : (isScreen ? ICONS.appScreen : ICONS.appWindow);
 
                             card.innerHTML = `
-                                <div class="rc-preview" style="background: ${previewBg};">
+                                <div class="rc-preview">
                                     ${previewInner}
                                 </div>
                                 <div class="rc-info">
-                                    <span class="rc-icon">${bottomIconSvg}</span>
-                                    <span class="rc-name" title="${source.name || ''}">${source.name || ''}</span>
+                                    <span class="rc-icon">${iconHtml}</span>
+                                    <span class="rc-name"></span>
                                 </div>
                             `;
+
+                            const nameEl = card.querySelector(".rc-name");
+                            if (nameEl) {
+                                nameEl.textContent = source.name || "";
+                                nameEl.title = source.name || "";
+                            }
 
                             card.addEventListener("click", () => {
                                 selectedSourceId = source.id;
@@ -837,27 +795,65 @@
                             }
 
                             const fpsNum = parseInt(selectedFps, 10) || 60;
+
+                            if (typeof MediaStreamTrackGenerator === "function") {
+                                try {
+                                    const gen = new MediaStreamTrackGenerator({ kind: "video" });
+                                    const writer = gen.writable.getWriter();
+                                    let busy = false;
+
+                                    const onFrame = async (buf) => {
+                                        if (busy) return;
+                                        busy = true;
+                                        try {
+                                            const blob = buf instanceof Blob ? buf : new Blob([buf], { type: "image/jpeg" });
+                                            const bmp = await createImageBitmap(blob);
+                                            const frame = new VideoFrame(bmp, { timestamp: performance.now() * 1000 });
+                                            bmp.close();
+                                            await writer.write(frame);
+                                            frame.close();
+                                        } catch (_) {}
+                                        busy = false;
+                                    };
+
+                                    let channel = null;
+                                    if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.Channel === "function") {
+                                        channel = new window.__TAURI__.core.Channel();
+                                        channel.onmessage = onFrame;
+                                    }
+
+                                    if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === "function") {
+                                        window.__TAURI__.core.invoke("start_capture", {
+                                            id: selectedSourceId,
+                                            fps: fpsNum,
+                                            on_frame: channel,
+                                            onFrame: channel
+                                        }).catch(err => {
+                                            console.error("[Rustcord] start_capture error:", err);
+                                        });
+                                    }
+
+                                    const stopAll = () => {
+                                        try { writer.close(); } catch (_) {}
+                                        if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === "function") {
+                                            window.__TAURI__.core.invoke("stop_capture").catch(() => {});
+                                        }
+                                    };
+
+                                    gen.stop = stopAll;
+                                    gen.addEventListener("ended", stopAll);
+
+                                    cleanup();
+                                    overlay.remove();
+                                    resolve(new MediaStream([gen]));
+                                    return;
+                                } catch (genErr) {
+                                    console.warn("[Rustcord] MediaStreamTrackGenerator error, fallback to canvas:", genErr);
+                                }
+                            }
+
                             const widthNum = selectedResolution === "720p" ? 1280 : 1920;
                             const heightNum = selectedResolution === "720p" ? 720 : 1080;
-
-                            if (selectedSourceId.startsWith("screen:")) {
-                                cleanup();
-                                overlay.remove();
-                                try {
-                                    const stream = await origGetDisplayMedia({
-                                        video: {
-                                            frameRate: fpsNum,
-                                            width: { ideal: widthNum },
-                                            height: { ideal: heightNum }
-                                        },
-                                        audio: false
-                                    });
-                                    resolve(stream);
-                                } catch (err) {
-                                    reject(err);
-                                }
-                                return;
-                            }
 
                             try {
                                 const canvas = document.createElement("canvas");
@@ -890,17 +886,21 @@
 
                                     let isImgLoading = false;
                                     const onFrame = (payload) => {
-                                        if (payload && payload.data && !isImgLoading) {
+                                        if (!isImgLoading) {
                                             isImgLoading = true;
+                                            const blob = payload instanceof Blob ? payload : new Blob([payload], { type: "image/jpeg" });
+                                            const url = URL.createObjectURL(blob);
                                             const tempImg = new Image();
                                             tempImg.onload = () => {
                                                 currentImg = tempImg;
+                                                URL.revokeObjectURL(url);
                                                 isImgLoading = false;
                                             };
                                             tempImg.onerror = () => {
+                                                URL.revokeObjectURL(url);
                                                 isImgLoading = false;
                                             };
-                                            tempImg.src = payload.data;
+                                            tempImg.src = url;
                                         }
                                     };
 
@@ -914,10 +914,10 @@
                                         window.__TAURI__.core.invoke("start_capture", {
                                             id: selectedSourceId,
                                             fps: fpsNum,
-                                            on_frame: channel || onFrame,
-                                            onFrame: channel || onFrame
+                                            on_frame: channel,
+                                            onFrame: channel
                                         }).catch(err => {
-                                            console.error("[Rustcord] start_capture invoke error:", err);
+                                            console.error("[Rustcord] start_capture error:", err);
                                         });
                                     }
 

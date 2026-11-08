@@ -99,7 +99,6 @@ fn main() {
 
     let mut browser_args = String::from(
         "--default-background-color=0xFF1E1F22 \
-         --use-fake-ui-for-media-stream \
          --enable-usermedia-screen-capturing \
          --autoplay-policy=no-user-gesture-required \
          --disable-background-timer-throttling \
@@ -317,7 +316,7 @@ fn main() {
             let w_sources = window.clone();
             std::thread::spawn(move || {
                 std::thread::sleep(std::time::Duration::from_millis(1500));
-                let sources = sources::list_sources();
+                let sources = sources::list_sources_internal();
                 if let Ok(json) = serde_json::to_string(&sources) {
                     let _ = w_sources.eval(&format!(
                         "window.__RUSTCORD_SOURCES__ = {}; if (window.__UPDATE_RUSTCORD_SOURCES__) window.__UPDATE_RUSTCORD_SOURCES__();",

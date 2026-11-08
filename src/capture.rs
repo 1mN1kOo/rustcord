@@ -1,9 +1,8 @@
-use base64::Engine;
 use image::{ImageFormat, RgbaImage};
 use std::io::Cursor;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::time::{Duration, Instant};
-use tauri::ipc::Channel;
+use tauri::ipc::{Channel, InvokeResponseBody};
 use windows::Win32::Foundation::{HWND, RECT};
 use windows::Win32::Graphics::Gdi::{
     CreateCompatibleBitmap, CreateCompatibleDC, DeleteDC, DeleteObject, GetDC, GetDIBits,
@@ -16,13 +15,6 @@ use xcap::{Monitor, Window};
 
 static CURRENT_SESSION_ID: AtomicU64 = AtomicU64::new(0);
 static IS_CAPTURING: AtomicBool = AtomicBool::new(false);
-
-#[derive(serde::Serialize, Clone, Debug)]
-pub struct FramePayload {
-    pub data: String,
-    pub width: u32,
-    pub height: u32,
-}
 
 fn capture_window_hwnd(hwnd: HWND) -> Option<RgbaImage> {
     unsafe {
@@ -109,7 +101,7 @@ fn capture_window_hwnd(hwnd: HWND) -> Option<RgbaImage> {
 }
 
 #[tauri::command]
-pub fn start_capture(id: String, fps: Option<u32>, on_frame: Channel<FramePayload>) {
+pub fn start_capture(id: String, fps: Option<u32>, on_frame: Channel<InvokeResponseBody>) {
     let session_id = CURRENT_SESSION_ID.fetch_add(1, Ordering::SeqCst) + 1;
     IS_CAPTURING.store(true, Ordering::SeqCst);
 
@@ -161,7 +153,7 @@ pub fn start_capture(id: String, fps: Option<u32>, on_frame: Channel<FramePayloa
                 }
                 if img.is_none() {
                     if let Some(target_id) = target_raw_id {
-                        let hwnd = HWND(target_id as isize as *mut _);
+                        let hwnd = HWND((target_id as i32 as isize) as *mut _);
                         img = capture_window_hwnd(hwnd);
                     }
                 }
@@ -196,13 +188,7 @@ pub fn start_capture(id: String, fps: Option<u32>, on_frame: Channel<FramePayloa
                 let mut jpeg_bytes = Vec::new();
                 let mut cursor = Cursor::new(&mut jpeg_bytes);
                 if final_img.write_to(&mut cursor, ImageFormat::Jpeg).is_ok() {
-                    let b64 = base64::engine::general_purpose::STANDARD.encode(&jpeg_bytes);
-                    let payload = FramePayload {
-                        data: format!("data:image/jpeg;base64,{}", b64),
-                        width: target_w,
-                        height: target_h,
-                    };
-                    if on_frame.send(payload).is_err() {
+                    if on_frame.send(InvokeResponseBody::Raw(jpeg_bytes)).is_err() {
                         break;
                     }
                 }

@@ -19,7 +19,7 @@ base64 = "0.22"
 urlencoding = "2.1"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png"] }
 notify = "8.2.1"
-xcap = { version = "0.9.8", features = ["image"] }
+xcap = { version = "0.9.8", features = ["image", "wgc"] }
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
