@@ -7,7 +7,7 @@
 <br>
 
 <a href="https://rustcord.mollra.xyz">
-  <img src="https://img.shields.io/badge/Release-v1.1.6-7B2CBF?style=for-the-badge" alt="Release">
+  <img src="https://img.shields.io/badge/Release-v1.1.7-7B2CBF?style=for-the-badge" alt="Release">
 </a>
 <a href="https://github.com/1mN1kOo/rustcord/blob/main/LICENSE">
   <img src="https://img.shields.io/badge/License-MIT-5865F2?style=for-the-badge" alt="License">
@@ -18,7 +18,7 @@
 
 <br><br>
 
-[**Скачать Rustcord v1.1.6**](https://rustcord.mollra.xyz) • [**Официальный сайт**](https://rustcord.mollra.xyz)
+[**Скачать Rustcord v1.1.7**](https://rustcord.mollra.xyz) • [**Официальный сайт**](https://rustcord.mollra.xyz)
 
 </div>
 

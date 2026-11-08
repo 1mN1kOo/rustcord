@@ -1,5 +1,5 @@
 (function() {
-    const CURRENT_VERSION = "1.1.6";
+    const CURRENT_VERSION = "1.1.7";
 
     try {
         if (document.documentElement) {

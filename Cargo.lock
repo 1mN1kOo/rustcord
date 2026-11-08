@@ -3990,7 +3990,7 @@ dependencies = [
 
 [[package]]
 name = "rustcord"
-version = "1.1.6"
+version = "1.1.7"
 dependencies = [
  "base64 0.22.1",
  "image",
