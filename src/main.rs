@@ -92,6 +92,7 @@ fn handle_native_ipc(
 }
 
 fn main() {
+    let _ = updater::check_last_update();
     let settings = updater::load_settings();
     if settings.dpi_bypass {
         dpi_bypass::start_dpi_proxy();

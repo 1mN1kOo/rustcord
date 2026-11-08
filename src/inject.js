@@ -1,5 +1,5 @@
 (function() {
-    const CURRENT_VERSION = "1.1.7";
+    const CURRENT_VERSION = "1.1.8";
 
     try {
         if (document.documentElement) {
@@ -605,7 +605,7 @@
                         </div>
                         <div class="rc-footer">
                             <button class="rc-btn-cancel" id="rc-cancel">Отмена</button>
-                            <button class="rc-btn-submit" id="rc-submit">Прямой эфир</button>
+                            <button class="rc-btn-submit rc-sc-btn-submit" id="rc-submit">Прямой эфир</button>
                         </div>
                     `;
                     shadowRoot.appendChild(modal);
@@ -663,7 +663,7 @@
                         filtered.forEach((source) => {
                             const isSelected = source.id === selectedSourceId;
                             const card = document.createElement("div");
-                            card.className = "rc-card" + (isSelected ? " selected" : "");
+                            card.className = "rc-card rc-sc-card card" + (isSelected ? " selected" : "");
                             card.setAttribute("data-source-id", source.id);
 
                             const isScreen = source.kind === "screen" || (source.id && source.id.startsWith("screen:"));
@@ -796,7 +796,7 @@
 
                             const fpsNum = parseInt(selectedFps, 10) || 60;
 
-                            if (typeof MediaStreamTrackGenerator === "function") {
+                            if (window.__TAURI__ && window.__TAURI__.core && typeof MediaStreamTrackGenerator === "function") {
                                 try {
                                     const gen = new MediaStreamTrackGenerator({ kind: "video" });
                                     const writer = gen.writable.getWriter();
@@ -817,12 +817,12 @@
                                     };
 
                                     let channel = null;
-                                    if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.Channel === "function") {
+                                    if (typeof window.__TAURI__.core.Channel === "function") {
                                         channel = new window.__TAURI__.core.Channel();
                                         channel.onmessage = onFrame;
                                     }
 
-                                    if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === "function") {
+                                    if (typeof window.__TAURI__.core.invoke === "function") {
                                         window.__TAURI__.core.invoke("start_capture", {
                                             id: selectedSourceId,
                                             fps: fpsNum,
@@ -835,7 +835,7 @@
 
                                     const stopAll = () => {
                                         try { writer.close(); } catch (_) {}
-                                        if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === "function") {
+                                        if (typeof window.__TAURI__.core.invoke === "function") {
                                             window.__TAURI__.core.invoke("stop_capture").catch(() => {});
                                         }
                                     };
@@ -855,102 +855,108 @@
                             const widthNum = selectedResolution === "720p" ? 1280 : 1920;
                             const heightNum = selectedResolution === "720p" ? 720 : 1080;
 
-                            try {
-                                const canvas = document.createElement("canvas");
-                                canvas.width = widthNum;
-                                canvas.height = heightNum;
-                                const ctx = canvas.getContext("2d", { alpha: false });
-                                if (ctx) {
-                                    ctx.fillStyle = "#1e1f22";
-                                    ctx.fillRect(0, 0, widthNum, heightNum);
-                                }
+                            if (window.__TAURI__ && window.__TAURI__.core) {
+                                try {
+                                    const canvas = document.createElement("canvas");
+                                    canvas.width = widthNum;
+                                    canvas.height = heightNum;
+                                    const ctx = canvas.getContext("2d", { alpha: false });
+                                    if (ctx) {
+                                        ctx.fillStyle = "#1e1f22";
+                                        ctx.fillRect(0, 0, widthNum, heightNum);
+                                    }
 
-                                const stream = canvas.captureStream ? canvas.captureStream(fpsNum) : null;
-                                if (stream) {
-                                    let currentImg = null;
-                                    let animActive = true;
-                                    let lastDrawTime = 0;
-                                    const targetInterval = 1000 / fpsNum;
+                                    const stream = canvas.captureStream ? canvas.captureStream(fpsNum) : null;
+                                    if (stream) {
+                                        let currentImg = null;
+                                        let animActive = true;
+                                        let lastDrawTime = 0;
+                                        const targetInterval = 1000 / fpsNum;
 
-                                    function renderLoop(timestamp) {
-                                        if (!animActive) return;
-                                        if (timestamp - lastDrawTime >= targetInterval) {
-                                            if (currentImg && currentImg.complete && currentImg.naturalWidth > 0) {
-                                                ctx.drawImage(currentImg, 0, 0, canvas.width, canvas.height);
+                                        function renderLoop(timestamp) {
+                                            if (!animActive) return;
+                                            if (timestamp - lastDrawTime >= targetInterval) {
+                                                if (currentImg && currentImg.complete && currentImg.naturalWidth > 0) {
+                                                    ctx.drawImage(currentImg, 0, 0, canvas.width, canvas.height);
+                                                }
+                                                lastDrawTime = timestamp;
                                             }
-                                            lastDrawTime = timestamp;
+                                            requestAnimationFrame(renderLoop);
                                         }
                                         requestAnimationFrame(renderLoop);
-                                    }
-                                    requestAnimationFrame(renderLoop);
 
-                                    let isImgLoading = false;
-                                    const onFrame = (payload) => {
-                                        if (!isImgLoading) {
-                                            isImgLoading = true;
-                                            const blob = payload instanceof Blob ? payload : new Blob([payload], { type: "image/jpeg" });
-                                            const url = URL.createObjectURL(blob);
-                                            const tempImg = new Image();
-                                            tempImg.onload = () => {
-                                                currentImg = tempImg;
-                                                URL.revokeObjectURL(url);
-                                                isImgLoading = false;
-                                            };
-                                            tempImg.onerror = () => {
-                                                URL.revokeObjectURL(url);
-                                                isImgLoading = false;
-                                            };
-                                            tempImg.src = url;
-                                        }
-                                    };
-
-                                    let channel = null;
-                                    if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.Channel === "function") {
-                                        channel = new window.__TAURI__.core.Channel();
-                                        channel.onmessage = onFrame;
-                                    }
-
-                                    if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === "function") {
-                                        window.__TAURI__.core.invoke("start_capture", {
-                                            id: selectedSourceId,
-                                            fps: fpsNum,
-                                            on_frame: channel,
-                                            onFrame: channel
-                                        }).catch(err => {
-                                            console.error("[Rustcord] start_capture error:", err);
-                                        });
-                                    }
-
-                                    const vTracks = stream.getVideoTracks();
-                                    if (vTracks.length > 0) {
-                                        const origStop = vTracks[0].stop ? vTracks[0].stop.bind(vTracks[0]) : null;
-                                        const stopAll = () => {
-                                            animActive = false;
-                                            if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === "function") {
-                                                window.__TAURI__.core.invoke("stop_capture").catch(() => {});
+                                        let isImgLoading = false;
+                                        const onFrame = (payload) => {
+                                            if (!isImgLoading) {
+                                                isImgLoading = true;
+                                                const blob = payload instanceof Blob ? payload : new Blob([payload], { type: "image/jpeg" });
+                                                const url = URL.createObjectURL(blob);
+                                                const tempImg = new Image();
+                                                tempImg.onload = () => {
+                                                    currentImg = tempImg;
+                                                    URL.revokeObjectURL(url);
+                                                    isImgLoading = false;
+                                                };
+                                                tempImg.onerror = () => {
+                                                    URL.revokeObjectURL(url);
+                                                    isImgLoading = false;
+                                                };
+                                                tempImg.src = url;
                                             }
                                         };
-                                        vTracks[0].stop = function() {
-                                            if (origStop) origStop();
-                                            stopAll();
-                                        };
-                                        vTracks[0].addEventListener("ended", stopAll);
-                                    }
 
-                                    cleanup();
-                                    overlay.remove();
-                                    resolve(stream);
-                                    return;
+                                        let channel = null;
+                                        if (typeof window.__TAURI__.core.Channel === "function") {
+                                            channel = new window.__TAURI__.core.Channel();
+                                            channel.onmessage = onFrame;
+                                        }
+
+                                        if (typeof window.__TAURI__.core.invoke === "function") {
+                                            window.__TAURI__.core.invoke("start_capture", {
+                                                id: selectedSourceId,
+                                                fps: fpsNum,
+                                                on_frame: channel,
+                                                onFrame: channel
+                                            }).catch(err => {
+                                                console.error("[Rustcord] start_capture error:", err);
+                                            });
+                                        }
+
+                                        const vTracks = stream.getVideoTracks();
+                                        if (vTracks.length > 0) {
+                                            const origStop = vTracks[0].stop ? vTracks[0].stop.bind(vTracks[0]) : null;
+                                            const stopAll = () => {
+                                                animActive = false;
+                                                if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === "function") {
+                                                    window.__TAURI__.core.invoke("stop_capture").catch(() => {});
+                                                }
+                                            };
+                                            vTracks[0].stop = function() {
+                                                if (origStop) origStop();
+                                                stopAll();
+                                            };
+                                            vTracks[0].addEventListener("ended", stopAll);
+                                        }
+
+                                        cleanup();
+                                        overlay.remove();
+                                        resolve(stream);
+                                        return;
+                                    }
+                                } catch (tauriErr) {
+                                    console.warn("[Rustcord] Tauri capture stream error, falling back:", tauriErr);
                                 }
-                            } catch (tauriErr) {
-                                console.warn("[Rustcord] Tauri capture stream error, falling back:", tauriErr);
                             }
 
                             cleanup();
                             overlay.remove();
                             try {
                                 const stream = await origGetDisplayMedia({
-                                    video: { frameRate: fpsNum },
+                                    video: {
+                                        width: { ideal: widthNum, max: widthNum },
+                                        height: { ideal: heightNum, max: heightNum },
+                                        frameRate: { ideal: fpsNum, max: fpsNum }
+                                    },
                                     audio: false
                                 });
                                 resolve(stream);

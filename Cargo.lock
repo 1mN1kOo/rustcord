@@ -3990,13 +3990,14 @@ dependencies = [
 
 [[package]]
 name = "rustcord"
-version = "1.1.7"
+version = "1.1.8"
 dependencies = [
  "base64 0.22.1",
  "image",
  "notify",
  "serde",
  "serde_json",
+ "sha2",
  "tauri",
  "tauri-build",
  "tauri-plugin-single-instance",
